@@ -58,18 +58,27 @@ class ChessDataModule(LightningDataModule):
     def __init__(
         self,
         data_dir: str = "data/",
+        dataset: list = None,
         train_val_test_split: Tuple[int, int, int] = (55_000, 5_000, 10_000),
         batch_size: int = 64,
         num_workers: int = 0,
         pin_memory: bool = False,
+        gen_data: bool = False,
+        case_nums: int = 5000,
+        chunk_size: int = 1000,
+        force_parse_data: bool = False
     ) -> None:
-        """Initialize a `MNISTDataModule`.
+        """Initialize a `ChessDataModule`.
 
         :param data_dir: The data directory. Defaults to `"data/"`.
+        :param dataset: The dataset. Defaults to `None`.
         :param train_val_test_split: The train, validation and test split. Defaults to `(55_000, 5_000, 10_000)`.
         :param batch_size: The batch size. Defaults to `64`.
         :param num_workers: The number of workers. Defaults to `0`.
         :param pin_memory: Whether to pin memory. Defaults to `False`.
+        :param gen_data: Whether to generate data. Defaults to `False`.
+        :param case_nums: The number of cases to generate. Defaults to `5000`.
+        :param chunk_size: The chunk size. Defaults to `1000`.
         """
         super().__init__()
 
@@ -87,6 +96,7 @@ class ChessDataModule(LightningDataModule):
         self.data_test: Optional[Dataset] = None
 
         self.batch_size_per_device = batch_size
+
 
     def prepare_data(self) -> None:
         """Download data if needed. Lightning ensures that `self.prepare_data()` is called only

@@ -1,5 +1,6 @@
 # @package _global_
 task_name: captcha_cnn
+run_name: default_run
 tags: ["dev"]
 train: True
 test: True
@@ -53,7 +54,7 @@ callbacks:
     _target_: lightning.pytorch.callbacks.ModelCheckpoint
     dirpath: ${paths.output_dir}/checkpoints
     filename: epoch_{epoch:03d}
-    monitor: val/temperature_mse/dataloader_idx_0
+    monitor: val/total_loss
     verbose: false
     save_last: true
     save_top_k: -1
@@ -70,9 +71,20 @@ callbacks:
   lr_monitor:
     _target_: lightning.pytorch.callbacks.LearningRateMonitor
     logging_interval: epoch
-  log_tre:
-    _target_: src.callbacks.log_tre.LogTRECallback
 logger:
+  csv:
+    _target_: lightning.pytorch.loggers.csv_logs.CSVLogger
+    save_dir: ${paths.log_dir}/aim/aimruns
+    name: csv/
+    prefix: ''
+  mlflow:
+    _target_: lightning.pytorch.loggers.mlflow.MLFlowLogger
+    experiment_name: ${task_name}
+    run_name: ${run_name}
+    tracking_uri: ${paths.log_dir}/mlflow/mlruns
+    tags: null
+    prefix: ''
+    artifact_location: null
   tensorboard:
     _target_: lightning.pytorch.loggers.tensorboard.TensorBoardLogger
     save_dir: ${paths.output_dir}/tensorboard/
@@ -80,11 +92,16 @@ logger:
     log_graph: false
     default_hp_metric: true
     prefix: ''
-  csv:
-    _target_: lightning.pytorch.loggers.csv_logs.CSVLogger
-    save_dir: ${paths.output_dir}
-    name: csv/
-    prefix: ''
+  aim:
+    _target_: aim.pytorch_lightning.AimLogger
+    repo: ${paths.log_dir}
+    experiment: ${task_name}
+    train_metric_prefix: "train/"
+    val_metric_prefix: "val/"
+    test_metric_prefix: "test/"
+    system_tracking_interval: 10
+    log_system_params: true
+    capture_terminal_logs: true
 trainer:
   _target_: lightning.pytorch.trainer.Trainer
   default_root_dir: ${paths.output_dir}
@@ -92,9 +109,8 @@ trainer:
   strategy: auto
   devices: auto
   num_nodes: 1
-  precision: high
+  precision: 32-true
   logger: True
-  callbacks: [checkpoint_callback]
   fast_dev_run: False
   min_epochs: 10
   max_epochs: 720
