@@ -1,5 +1,5 @@
 # @package _global_
-task_name: captcha_cnn
+task_name: chess_md1
 run_name: default_run
 tags: ["dev"]
 train: True
