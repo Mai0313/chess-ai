@@ -70,7 +70,7 @@ class ChessDataGenerator:
                     board_array[j, i, piece_idx[piece.symbol()]] = 1.0
         return board_array
 
-    def convert_data_from_realworld(self, input_path, output_path):
+    def convert_data_from_realworld(self, input_path, train_cases_path, val_cases_path):
         data = []
         labels = []
         filenames = [f for f in os.listdir(input_path) if f.endswith(".pgn")]
@@ -104,9 +104,8 @@ class ChessDataGenerator:
             data, labels, test_size=0.2, random_state=42
         )
 
-        os.makedirs(output_path, exist_ok=True)
-        ChessDataLoader().save_data(X_train, y_train, f"{output_path}/train_cases.npz")
-        ChessDataLoader().save_data(X_val, y_val, f"{output_path}/val_cases.npz")
+        ChessDataLoader().save_data(X_train, y_train, train_cases_path)
+        ChessDataLoader().save_data(X_val, y_val, val_cases_path)
 
         return X_train, X_val, y_train, y_val
 
@@ -148,8 +147,7 @@ class ChessDataGenerator:
 
 if __name__ == "__main__":
     input_path = "./data/20230929_raw_data"
-    output_path = "./data"
-    ChessDataGenerator().convert_data_from_realworld(input_path, output_path)
-    # ChessDataGenerator().generate_data(500, "./data/train_cases.npz")
-    # ChessDataGenerator().generate_data(50, "./data/validation_cases.npz")
-    ChessDataGenerator().generate_data(10, "./data/test_cases.npz")
+    train_cases_path = "./data/train_cases.npz"
+    val_cases_path = "./data/val_cases.npz"
+    ChessDataGenerator().convert_data_from_realworld(input_path, train_cases_path, val_cases_path)
+    ChessDataGenerator().generate_data(30, "./data/test_cases.npz")

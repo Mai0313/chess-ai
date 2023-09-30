@@ -1,5 +1,6 @@
 from typing import Any, Dict, Optional, Tuple
 
+import os
 import torch
 import numpy as np
 from lightning import LightningDataModule
@@ -105,21 +106,16 @@ class ChessDataModule(LightningDataModule):
 
         Do not use it to assign state (self.x = y).
         """
+        self.hparams.train_dataset = self.hparams.dataset.train.data_path
+        self.hparams.val_dataset = self.hparams.dataset.validation.data_path
+        self.hparams.test_dataset = self.hparams.dataset.test.data_path
+        if not os.path.exists(self.hparams.train_dataset) or not os.path.exists(self.hparams.val_dataset) or not os.path.exists(self.hparams.test_dataset):
+            ChessDataGenerator().convert_data_from_realworld(self.hparams.dataset.raw_data.data_path, self.hparams.train_dataset, self.hparams.val_dataset)
+            ChessDataGenerator().generate_data(30, self.hparams.test_dataset)
         if self.hparams.gen_data:
-            # generate data
-            ChessDataGenerator().generate_data(
-                self.hparams.case_nums, self.hparams.chunk_size, "./data/train_cases.npz"
-            )
-            ChessDataGenerator().generate_data(
-                self.hparams.case_nums * 0.2,
-                self.hparams.chunk_size * 0.2,
-                "./data/validation_cases.npz",
-            )
-            ChessDataGenerator().generate_data(
-                self.hparams.case_nums * 0.2,
-                self.hparams.chunk_size * 0.2,
-                "./data/test_cases.npz",
-            )
+            ChessDataGenerator().generate_data(500, self.hparams.train_dataset)
+            ChessDataGenerator().generate_data(10, self.hparams.val_dataset)
+            ChessDataGenerator().generate_data(10, self.hparams.test_dataset)
 
     def setup(self, stage: Optional[str] = None) -> None:
         """Load data. Set variables: `self.data_train`, `self.data_val`, `self.data_test`.
@@ -131,10 +127,6 @@ class ChessDataModule(LightningDataModule):
 
         :param stage: The stage to setup. Either `"fit"`, `"validate"`, `"test"`, or `"predict"`. Defaults to ``None``.
         """
-        # Divide batch size by the number of devices.
-        self.hparams.train_dataset = self.hparams.dataset.train.data_path
-        self.hparams.val_dataset = self.hparams.dataset.validation.data_path
-        self.hparams.test_dataset = self.hparams.dataset.test.data_path
         if not self.data_train and not self.data_val and not self.data_test:
             train_data, train_labels = ChessDataLoader().load_data(self.hparams.train_dataset)
             val_data, val_labels = ChessDataLoader().load_data(self.hparams.val_dataset)
