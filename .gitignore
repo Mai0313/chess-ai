@@ -152,5 +152,5 @@ configs/local/default.yaml
 
 # Aim logging
 .aim
-codegpt
+code
 /data
