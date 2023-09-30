@@ -205,7 +205,7 @@ class ChessModule(LightningModule):
                 "optimizer": optimizer,
                 "lr_scheduler": {
                     "scheduler": scheduler,
-                    "monitor": "val/loss",
+                    "monitor": "val/total_loss",
                     "interval": "epoch",
                     "frequency": 1,
                 },
