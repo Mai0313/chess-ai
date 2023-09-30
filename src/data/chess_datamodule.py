@@ -1,13 +1,15 @@
 from typing import Any, Dict, Optional, Tuple
 
 import torch
+import numpy as np
 from lightning import LightningDataModule
 from torch.utils.data import ConcatDataset, DataLoader, Dataset, random_split
 from torchvision.datasets import MNIST
 from torchvision.transforms import transforms
+from src.data.components.gen_data import generate_data
 
 
-class MNISTDataModule(LightningDataModule):
+class ChessDataModule(LightningDataModule):
     """`LightningDataModule` for the MNIST dataset.
 
     The MNIST database of handwritten digits has a training set of 60,000 examples, and a test set of 10,000 examples.
@@ -85,14 +87,6 @@ class MNISTDataModule(LightningDataModule):
 
         self.batch_size_per_device = batch_size
 
-    @property
-    def num_classes(self) -> int:
-        """Get the number of classes.
-
-        :return: The number of MNIST classes (10).
-        """
-        return 10
-
     def prepare_data(self) -> None:
         """Download data if needed. Lightning ensures that `self.prepare_data()` is called only
         within a single process on CPU, so you can safely add your downloading logic within. In
@@ -101,8 +95,13 @@ class MNISTDataModule(LightningDataModule):
 
         Do not use it to assign state (self.x = y).
         """
-        MNIST(self.hparams.data_dir, train=True, download=True)
-        MNIST(self.hparams.data_dir, train=False, download=True)
+        if self.hparams.gen_data:
+            # generate data
+            generate_data(self.hparams.gen_data.numbers, self.hparams.gen_data.chunk_size)
+
+    def __load_data(self, file_name):
+        loaded_data = np.load(file_name)
+        return loaded_data['data'], loaded_data['labels']
 
     def setup(self, stage: Optional[str] = None) -> None:
         """Load data. Set variables: `self.data_train`, `self.data_val`, `self.data_test`.
@@ -115,23 +114,13 @@ class MNISTDataModule(LightningDataModule):
         :param stage: The stage to setup. Either `"fit"`, `"validate"`, `"test"`, or `"predict"`. Defaults to ``None``.
         """
         # Divide batch size by the number of devices.
-        if self.trainer is not None:
-            if self.hparams.batch_size % self.trainer.world_size != 0:
-                raise RuntimeError(
-                    f"Batch size ({self.hparams.batch_size}) is not divisible by the number of devices ({self.trainer.world_size})."
-                )
-            self.batch_size_per_device = self.hparams.batch_size // self.trainer.world_size
-
-        # load and split datasets only if not loaded already
+        self.hparams.train_dataset = self.hparams.dataset.train.parsed_data
+        self.hparams.val_dataset = self.hparams.dataset.validation.parsed_data
+        self.hparams.test_dataset = self.hparams.dataset.test.parsed_data
         if not self.data_train and not self.data_val and not self.data_test:
-            trainset = MNIST(self.hparams.data_dir, train=True, transform=self.transforms)
-            testset = MNIST(self.hparams.data_dir, train=False, transform=self.transforms)
-            dataset = ConcatDataset(datasets=[trainset, testset])
-            self.data_train, self.data_val, self.data_test = random_split(
-                dataset=dataset,
-                lengths=self.hparams.train_val_test_split,
-                generator=torch.Generator().manual_seed(42),
-            )
+            self.data_train = self.__load_data(self.hparams.train_dataset)
+            self.data_val = self.__load_data(self.hparams.val_dataset)
+            self.data_test = self.__load_data(self.hparams.test_dataset)
 
     def train_dataloader(self) -> DataLoader[Any]:
         """Create and return the train dataloader.
@@ -198,4 +187,4 @@ class MNISTDataModule(LightningDataModule):
 
 
 if __name__ == "__main__":
-    _ = MNISTDataModule()
+    _ = ChessDataModule()

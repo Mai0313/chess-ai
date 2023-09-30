@@ -10,6 +10,9 @@ data:
   batch_size: 64
   num_workers: 0
   pin_memory: False
+  gen_data: False
+    numbers: 5000
+    chunk_size: 1000
   dataset:
     train:
       raw_data: ${paths.data_dir}/20230827_captcha/train/train.zip  # can be a folder or zip file

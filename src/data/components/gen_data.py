@@ -91,7 +91,7 @@ def merge_saved_data():
 
     all_data = np.array(all_data)
     all_labels = np.array(all_labels)
-    save_data(all_data, all_labels, "./data/generated_cases_merged.npz")
+    save_data(all_data, all_labels, "./data/train_cases.npz")
 
 
 def generate_data(num_games, save_interval):
@@ -131,4 +131,4 @@ def generate_data(num_games, save_interval):
 
 if __name__ == "__main__":
     convert_data_from_realword("./data/chess_raw")
-    generate_data(5000, 1000)
+    generate_data(500, 100)
