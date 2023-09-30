@@ -21,6 +21,22 @@ class ChessDataLoader:
     def load_data(self, file_name):
         loaded_data = np.load(file_name)
         return loaded_data["data"], loaded_data["labels"]
+    
+    def merge_saved_data(self, output_filename):
+        folder_path = "./data/temp"
+        all_data = []
+        all_labels = []
+
+        for file_name in os.listdir(folder_path):
+            if file_name.endswith(".npz"):
+                file_path = f"{folder_path}/{file_name}"
+                data, labels = self.load_data(file_path)
+                all_data.extend(data)
+                all_labels.extend(labels)
+
+        all_data = np.array(all_data)
+        all_labels = np.array(all_labels)
+        self.save_data(all_data, all_labels, output_filename)
 
 
 class ChessDataGenerator:
@@ -53,12 +69,12 @@ class ChessDataGenerator:
                     board_array[j, i, piece_idx[piece.symbol()]] = 1.0
         return board_array
 
-    def convert_data_from_realword(self, path):
+    def convert_data_from_realword(self, input_path, output_path):
         data = []
         labels = []
-        filenames = [f for f in os.listdir(path) if f.endswith(".pgn")]
+        filenames = [f for f in os.listdir(input_path) if f.endswith(".pgn")]
         for filename in filenames:
-            pgn = open(f"{path}/{filename}")
+            pgn = open(f"{input_path}/{filename}")
             while True:
                 game = chess.pgn.read_game(pgn)
                 if game is None:
@@ -67,39 +83,22 @@ class ChessDataGenerator:
                 for move in game.mainline_moves():
                     board.push(move)
                     board_array = self.__board_to_array(board)
-                    label = (
-                        1.0 if board.turn == chess.WHITE else 0.0
-                    )  # 1 for white's turn, 0 for black
+                    label = 1.0 if board.turn == chess.WHITE else 0.0  # 1 for white's turn, 0 for black
                     data.append(board_array)
                     labels.append(label)
 
         # Adjust dimensions
         data = np.transpose(data, (0, 3, 1, 2))
-        os.makedirs("./data", exist_ok=True)
-        ChessDataLoader().save_data(np.array(data), np.array(labels), "./data/real_cases.npz")
+        os.makedirs(output_path, exist_ok=True)
+        ChessDataLoader().save_data(np.array(data), np.array(labels), f"{output_path}/train_cases.npz")
         return np.array(data), np.array(labels)
 
-    def merge_saved_data(self, output_filename):
-        folder_path = "./data/temp"
-        all_data = []
-        all_labels = []
-
-        for file_name in os.listdir(folder_path):
-            if file_name.endswith(".npz"):
-                file_path = f"{folder_path}/{file_name}"
-                data, labels = ChessDataLoader().load_data(file_path)
-                all_data.extend(data)
-                all_labels.extend(labels)
-
-        all_data = np.array(all_data)
-        all_labels = np.array(all_labels)
-        ChessDataLoader().save_data(all_data, all_labels, output_filename)
-
-    def generate_data(self, num_games, save_interval, output_filename):
+    def generate_data(self, num_games, output_filename):
         data = []
         labels = []
         folder_path = "./data/temp"
         os.makedirs(folder_path, exist_ok=True)
+        save_interval = num_games * 0.2
 
         with Progress() as progress:
             task = progress.add_task("[cyan]Generating data...", total=num_games)
@@ -126,12 +125,14 @@ class ChessDataGenerator:
 
                     data = []
                     labels = []
-        self.merge_saved_data(output_filename)
+        ChessDataLoader().merge_saved_data(output_filename)
         shutil.rmtree(folder_path)
 
 
 if __name__ == "__main__":
-    ChessDataGenerator().convert_data_from_realword("./data/chess_raw")
-    ChessDataGenerator().generate_data(500, 100, "./data/train_cases.npz")
-    ChessDataGenerator().generate_data(50, 10, "./data/validation_cases.npz")
-    ChessDataGenerator().generate_data(10, 5, "./data/test_cases.npz")
+    input_path = "./data/20230929_raw_data"
+    output_path = "./data"
+    ChessDataGenerator().convert_data_from_realword(input_path, output_path)
+    ChessDataGenerator().generate_data(500, "./data/train_cases.npz")
+    ChessDataGenerator().generate_data(50, "./data/validation_cases.npz")
+    ChessDataGenerator().generate_data(10, "./data/test_cases.npz")
