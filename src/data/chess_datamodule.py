@@ -107,7 +107,9 @@ class ChessDataModule(LightningDataModule):
         """
         if self.hparams.gen_data:
             # generate data
-            ChessDataGenerator().generate_data(self.hparams.case_nums, self.hparams.chunk_size)
+            ChessDataGenerator().generate_data(self.hparams.case_nums, self.hparams.chunk_size, "./data/train_cases.npz")
+            ChessDataGenerator().generate_data(self.hparams.case_nums * 0.2, self.hparams.chunk_size * 0.2, "./data/validation_cases.npz")
+            ChessDataGenerator().generate_data(self.hparams.case_nums * 0.2, self.hparams.chunk_size * 0.2, "./data/test_cases.npz")
 
     def setup(self, stage: Optional[str] = None) -> None:
         """Load data. Set variables: `self.data_train`, `self.data_val`, `self.data_test`.
