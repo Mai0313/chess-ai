@@ -130,7 +130,7 @@ class ChessModule(LightningModule):
 
         self.train_loss(losses.get("total_loss"))
         for loss_name, loss_value in losses.items():
-            self.log(f'train/{loss_name}', loss_value, on_step=False, on_epoch=True, prog_bar=True)
+            self.log(f"train/{loss_name}", loss_value, on_step=False, on_epoch=True, prog_bar=True)
         return losses.get("total_loss")
 
     def on_train_epoch_end(self) -> None:
@@ -149,7 +149,7 @@ class ChessModule(LightningModule):
         # update and log metrics
         self.val_loss(losses.get("total_loss"))
         for loss_name, loss_value in losses.items():
-            self.log(f'val/{loss_name}', loss_value, on_step=False, on_epoch=True, prog_bar=True)
+            self.log(f"val/{loss_name}", loss_value, on_step=False, on_epoch=True, prog_bar=True)
 
     def on_validation_epoch_end(self) -> None:
         """Lightning hook that is called when a validation epoch ends."""
@@ -171,7 +171,7 @@ class ChessModule(LightningModule):
         # update and log metrics
         self.test_loss(losses.get("total_loss"))
         for loss_name, loss_value in losses.items():
-            self.log(f'test/{loss_name}', loss_value, on_step=False, on_epoch=True, prog_bar=True)
+            self.log(f"test/{loss_name}", loss_value, on_step=False, on_epoch=True, prog_bar=True)
 
     def on_test_epoch_end(self) -> None:
         """Lightning hook that is called when a test epoch ends."""

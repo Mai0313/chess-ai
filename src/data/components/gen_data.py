@@ -8,6 +8,7 @@ import rootutils
 
 rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
+
 class ChessDataLoader:
     def __init__(self):
         pass
@@ -52,7 +53,6 @@ class ChessDataGenerator:
                     board_array[j, i, piece_idx[piece.symbol()]] = 1.0
         return board_array
 
-
     def convert_data_from_realword(self, path):
         data = []
         labels = []
@@ -79,7 +79,6 @@ class ChessDataGenerator:
         ChessDataLoader().save_data(np.array(data), np.array(labels), "./data/real_cases.npz")
         return np.array(data), np.array(labels)
 
-
     def merge_saved_data(self):
         folder_path = "./data/temp"
         all_data = []
@@ -95,7 +94,6 @@ class ChessDataGenerator:
         all_data = np.array(all_data)
         all_labels = np.array(all_labels)
         ChessDataLoader().save_data(all_data, all_labels, "./data/train_cases.npz")
-
 
     def generate_data(self, num_games, save_interval):
         data = []
