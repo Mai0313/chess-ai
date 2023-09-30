@@ -133,3 +133,5 @@ class ChessDataGenerator:
 if __name__ == "__main__":
     ChessDataGenerator().convert_data_from_realword("./data/chess_raw")
     ChessDataGenerator().generate_data(500, 100, "./data/train_cases.npz")
+    ChessDataGenerator().generate_data(50, 10, "./data/validation_cases.npz")
+    ChessDataGenerator().generate_data(10, 5, "./data/test_cases.npz")
