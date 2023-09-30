@@ -18,7 +18,7 @@ data:
     train:
       data_path: ${paths.data_dir}/train_cases.npz
     validation:
-      data_path: ${paths.data_dir}/validation_cases.npz
+      data_path: ${paths.data_dir}/val_cases.npz
     test:
       data_path: ${paths.data_dir}/test_cases.npz
   force_parse_data: False
@@ -44,7 +44,7 @@ model:
     # num_classes: 36
     # num_chars: 5
     # hidden_size: 256
-  compile: false
+  compile: False
   loss_fns:
   - _target_: src.models.components.loss_fn.BCELossCustom
     tag: original_loss
