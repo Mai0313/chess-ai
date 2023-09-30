@@ -76,21 +76,23 @@ def convert_data_from_realword(path):
     save_data(np.array(data), np.array(labels), "./data/real_cases.npz")
     return np.array(data), np.array(labels)
 
+
 def merge_saved_data():
     folder_path = "./data/temp"
     all_data = []
     all_labels = []
-    
+
     for file_name in os.listdir(folder_path):
         if file_name.endswith(".npz"):
             file_path = f"{folder_path}/{file_name}"
             data, labels = load_data(file_path)
             all_data.extend(data)
             all_labels.extend(labels)
-    
+
     all_data = np.array(all_data)
     all_labels = np.array(all_labels)
     save_data(all_data, all_labels, "./data/generated_cases_merged.npz")
+
 
 def generate_data(num_games, save_interval):
     data = []
@@ -125,6 +127,7 @@ def generate_data(num_games, save_interval):
                 labels = []
     merge_saved_data()
     shutil.rmtree(folder_path)
+
 
 if __name__ == "__main__":
     convert_data_from_realword("./data/chess_raw")
