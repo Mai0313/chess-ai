@@ -74,7 +74,7 @@ callbacks:
 logger:
   csv:
     _target_: lightning.pytorch.loggers.csv_logs.CSVLogger
-    save_dir: ${paths.log_dir}/aim/aimruns
+    save_dir: ${paths.log_dir}
     name: csv/
     prefix: ''
   mlflow:
@@ -94,7 +94,7 @@ logger:
     prefix: ''
   aim:
     _target_: aim.pytorch_lightning.AimLogger
-    repo: ${paths.log_dir}
+    repo: ${paths.log_dir}/aim/aimruns
     experiment: ${task_name}
     train_metric_prefix: "train/"
     val_metric_prefix: "val/"
