@@ -66,7 +66,7 @@ class ChessDataModule(LightningDataModule):
         gen_data: bool = False,
         case_nums: int = 5000,
         chunk_size: int = 1000,
-        force_parse_data: bool = False
+        force_parse_data: bool = False,
     ) -> None:
         """Initialize a `ChessDataModule`.
 
@@ -96,7 +96,6 @@ class ChessDataModule(LightningDataModule):
         self.data_test: Optional[Dataset] = None
 
         self.batch_size_per_device = batch_size
-
 
     def prepare_data(self) -> None:
         """Download data if needed. Lightning ensures that `self.prepare_data()` is called only
