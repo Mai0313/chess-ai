@@ -4,6 +4,7 @@ import numpy as np
 import chess
 import chess.pgn
 from rich.progress import Progress
+from sklearn.model_selection import train_test_split
 import rootutils
 
 rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
@@ -21,7 +22,7 @@ class ChessDataLoader:
     def load_data(self, file_name):
         loaded_data = np.load(file_name)
         return loaded_data["data"], loaded_data["labels"]
-    
+
     def merge_saved_data(self, output_filename):
         folder_path = "./data/temp"
         all_data = []
@@ -69,29 +70,45 @@ class ChessDataGenerator:
                     board_array[j, i, piece_idx[piece.symbol()]] = 1.0
         return board_array
 
-    def convert_data_from_realword(self, input_path, output_path):
+    def convert_data_from_realworld(self, input_path, output_path):
         data = []
         labels = []
         filenames = [f for f in os.listdir(input_path) if f.endswith(".pgn")]
-        for filename in filenames:
-            pgn = open(f"{input_path}/{filename}")
-            while True:
-                game = chess.pgn.read_game(pgn)
-                if game is None:
-                    break  # End of file
-                board = game.board()
-                for move in game.mainline_moves():
-                    board.push(move)
-                    board_array = self.__board_to_array(board)
-                    label = 1.0 if board.turn == chess.WHITE else 0.0  # 1 for white's turn, 0 for black
-                    data.append(board_array)
-                    labels.append(label)
+
+        with Progress() as progress:
+            task = progress.add_task("[cyan]Processing PGN files...", total=len(filenames))
+
+            for filename in filenames:
+                with open(f"{input_path}/{filename}") as pgn:
+                    while True:
+                        game = chess.pgn.read_game(pgn)
+                        if game is None:
+                            break  # End of file
+                        board = game.board()
+                        for move in game.mainline_moves():
+                            board.push(move)
+                            board_array = self.__board_to_array(board)
+                            label = (
+                                1.0 if board.turn == chess.WHITE else 0.0
+                            )  # 1 for white's turn, 0 for black
+                            data.append(board_array)
+                            labels.append(label)
+
+                progress.update(task, advance=1)
 
         # Adjust dimensions
+        data = np.array(data)
+        labels = np.array(labels)
         data = np.transpose(data, (0, 3, 1, 2))
+        X_train, X_val, y_train, y_val = train_test_split(
+            data, labels, test_size=0.2, random_state=42
+        )
+
         os.makedirs(output_path, exist_ok=True)
-        ChessDataLoader().save_data(np.array(data), np.array(labels), f"{output_path}/train_cases.npz")
-        return np.array(data), np.array(labels)
+        ChessDataLoader().save_data(X_train, y_train, f"{output_path}/train_cases.npz")
+        ChessDataLoader().save_data(X_val, y_val, f"{output_path}/val_cases.npz")
+
+        return X_train, X_val, y_train, y_val
 
     def generate_data(self, num_games, output_filename):
         data = []
@@ -132,7 +149,7 @@ class ChessDataGenerator:
 if __name__ == "__main__":
     input_path = "./data/20230929_raw_data"
     output_path = "./data"
-    ChessDataGenerator().convert_data_from_realword(input_path, output_path)
-    ChessDataGenerator().generate_data(500, "./data/train_cases.npz")
-    ChessDataGenerator().generate_data(50, "./data/validation_cases.npz")
+    ChessDataGenerator().convert_data_from_realworld(input_path, output_path)
+    # ChessDataGenerator().generate_data(500, "./data/train_cases.npz")
+    # ChessDataGenerator().generate_data(50, "./data/validation_cases.npz")
     ChessDataGenerator().generate_data(10, "./data/test_cases.npz")
