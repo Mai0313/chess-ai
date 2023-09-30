@@ -16,7 +16,7 @@ data:
   chunk_size: 100
   dataset:
     raw_data:
-      data_path: ${paths.data_dir}/20230929_raw_data
+      data_path: ${paths.data_dir}/20231001_raw_data
     train:
       data_path: ${paths.data_dir}/train_cases.npz
     validation:

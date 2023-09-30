@@ -109,8 +109,16 @@ class ChessDataModule(LightningDataModule):
         self.hparams.train_dataset = self.hparams.dataset.train.data_path
         self.hparams.val_dataset = self.hparams.dataset.validation.data_path
         self.hparams.test_dataset = self.hparams.dataset.test.data_path
-        if not os.path.exists(self.hparams.train_dataset) or not os.path.exists(self.hparams.val_dataset) or not os.path.exists(self.hparams.test_dataset):
-            ChessDataGenerator().convert_data_from_realworld(self.hparams.dataset.raw_data.data_path, self.hparams.train_dataset, self.hparams.val_dataset)
+        if (
+            not os.path.exists(self.hparams.train_dataset)
+            or not os.path.exists(self.hparams.val_dataset)
+            or not os.path.exists(self.hparams.test_dataset)
+        ):
+            ChessDataGenerator().convert_data_from_realworld(
+                self.hparams.dataset.raw_data.data_path,
+                self.hparams.train_dataset,
+                self.hparams.val_dataset,
+            )
             ChessDataGenerator().generate_data(30, self.hparams.test_dataset)
         if self.hparams.gen_data:
             ChessDataGenerator().generate_data(500, self.hparams.train_dataset)
