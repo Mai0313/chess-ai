@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Tuple
 
 import hydra
+import torch
 import rootutils
 from lightning import LightningDataModule, LightningModule, Trainer
 from lightning.pytorch.loggers import Logger
@@ -33,7 +34,7 @@ from src.utils import (
 )
 
 log = RankedLogger(__name__, rank_zero_only=True)
-
+torch.set_float32_matmul_precision("high")
 
 @task_wrapper
 def evaluate(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
