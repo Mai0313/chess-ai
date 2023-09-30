@@ -6,7 +6,7 @@ test: True
 ckpt_path: null
 seed: null
 data:
-  _target_: src.data.captcha_datamodule.CaptchaDataModule
+  _target_: src.data.chess_datamodule.ChessDataModule
   batch_size: 64
   num_workers: 0
   pin_memory: False
@@ -15,17 +15,14 @@ data:
     chunk_size: 1000
   dataset:
     train:
-      raw_data: ${paths.data_dir}/20230827_captcha/train/train.zip  # can be a folder or zip file
-      parsed_data: ${paths.data_dir}/20230827_captcha/train/train.npz
+      data_path: ${paths.data_dir}/train_cases.npz
     validation:
-      raw_data: ${paths.data_dir}/20230827_captcha/val/val.zip  # can be a folder or zip file
-      parsed_data: ${paths.data_dir}/20230827_captcha/val/val.npz
+      data_path: ${paths.data_dir}/validation_cases.npz
     test:
-      raw_data: ${paths.data_dir}/20230827_captcha/test/test.zip  # can be a folder or zip file
-      parsed_data: ${paths.data_dir}/20230827_captcha/test/test.npz
+      data_path: ${paths.data_dir}/test_cases.npz
   force_parse_data: False
 model:
-  _target_: src.models.captcha_module.CaptchaModule
+  _target_: src.models.chess_module.ChessModule
   optimizer:
     _target_: torch.optim.Adam
     _partial_: true
@@ -38,48 +35,43 @@ model:
     factor: 0.1
     patience: 10
   net:
-    _target_: src.models.components.cnn.CaptchaNet
-    in_channels: 1
-    kernel_size: 3
-    stride: 1
-    padding: 1
-    num_classes: 36
-    num_chars: 5
-    hidden_size: 256
+    _target_: src.models.components.cnn.ChessCNN
+    # in_channels: 1
+    # kernel_size: 3
+    # stride: 1
+    # padding: 1
+    # num_classes: 36
+    # num_chars: 5
+    # hidden_size: 256
   compile: false
   loss_fns:
-  - _target_: src.models.components.loss_fn.CrossEntropyLoss
+  - _target_: src.models.components.loss_fn.BCELossCustom
     tag: original_loss
-    weight: 0.7
-  - _target_: src.models.components.loss_fn.CorrectnessLoss
-    tag: correctness_loss
-    weight: 0.2
-  - _target_: src.models.components.loss_fn.CorrectnessRewardLoss
-    tag: correctness_reward_loss
-    weight: 0.1
-  # - _target_: src.models.components.loss_fn.AccuracyLoss
-  #   tag: accuracy_loss
-  #   weight: 1
+    weight: 1
 callbacks:
   model_checkpoint:
     _target_: lightning.pytorch.callbacks.ModelCheckpoint
-    dirpath: null
+    dirpath: ${paths.output_dir}/checkpoints
     filename: epoch_{epoch:03d}
-    monitor: "val/total_loss"
-    verbose: False
-    save_last: True
+    monitor: val/temperature_mse/dataloader_idx_0
+    verbose: false
+    save_last: true
     save_top_k: -1
-    save_weights_only: False
     mode: min
-    auto_insert_metric_name: True
+    auto_insert_metric_name: false
+    save_weights_only: false
     every_n_train_steps: null
     train_time_interval: null
     every_n_epochs: 20
-    save_on_train_epoch_end: True
-  early_stopping:
-    monitor: "val/total_loss"
-    patience: 100
-    mode: min
+    save_on_train_epoch_end: null
+  model_summary:
+    _target_: lightning.pytorch.callbacks.RichModelSummary
+    max_depth: -1
+  lr_monitor:
+    _target_: lightning.pytorch.callbacks.LearningRateMonitor
+    logging_interval: epoch
+  log_tre:
+    _target_: src.callbacks.log_tre.LogTRECallback
 logger:
   tensorboard:
     _target_: lightning.pytorch.loggers.tensorboard.TensorBoardLogger
@@ -100,7 +92,7 @@ trainer:
   strategy: auto
   devices: auto
   num_nodes: 1
-  precision: 32-true
+  precision: high
   logger: True
   callbacks: [checkpoint_callback]
   fast_dev_run: False
