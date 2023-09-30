@@ -79,7 +79,7 @@ class ChessDataGenerator:
         ChessDataLoader().save_data(np.array(data), np.array(labels), "./data/real_cases.npz")
         return np.array(data), np.array(labels)
 
-    def merge_saved_data(self):
+    def merge_saved_data(self, output_filename):
         folder_path = "./data/temp"
         all_data = []
         all_labels = []
@@ -93,9 +93,9 @@ class ChessDataGenerator:
 
         all_data = np.array(all_data)
         all_labels = np.array(all_labels)
-        ChessDataLoader().save_data(all_data, all_labels, "./data/train_cases.npz")
+        ChessDataLoader().save_data(all_data, all_labels, output_filename)
 
-    def generate_data(self, num_games, save_interval):
+    def generate_data(self, num_games, save_interval, output_filename):
         data = []
         labels = []
         folder_path = "./data/temp"
@@ -126,10 +126,10 @@ class ChessDataGenerator:
 
                     data = []
                     labels = []
-        self.merge_saved_data()
+        self.merge_saved_data(output_filename)
         shutil.rmtree(folder_path)
 
 
 if __name__ == "__main__":
     ChessDataGenerator().convert_data_from_realword("./data/chess_raw")
-    ChessDataGenerator().generate_data(500, 100)
+    ChessDataGenerator().generate_data(500, 100, "./data/train_cases.npz")
