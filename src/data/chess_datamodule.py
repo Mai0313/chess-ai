@@ -6,7 +6,8 @@ from lightning import LightningDataModule
 from torch.utils.data import ConcatDataset, DataLoader, Dataset, random_split
 from torchvision.datasets import MNIST
 from torchvision.transforms import transforms
-from src.data.components.gen_data import generate_data
+from torch.utils.data import DataLoader, TensorDataset
+from src.data.components.gen_data import ChessDataLoader, ChessDataGenerator
 
 
 class ChessDataModule(LightningDataModule):
@@ -97,11 +98,7 @@ class ChessDataModule(LightningDataModule):
         """
         if self.hparams.gen_data:
             # generate data
-            generate_data(self.hparams.gen_data.numbers, self.hparams.gen_data.chunk_size)
-
-    def __load_data(self, file_name):
-        loaded_data = np.load(file_name)
-        return loaded_data['data'], loaded_data['labels']
+            ChessDataGenerator().generate_data(self.hparams.gen_data.numbers, self.hparams.gen_data.chunk_size)
 
     def setup(self, stage: Optional[str] = None) -> None:
         """Load data. Set variables: `self.data_train`, `self.data_val`, `self.data_test`.
@@ -114,13 +111,22 @@ class ChessDataModule(LightningDataModule):
         :param stage: The stage to setup. Either `"fit"`, `"validate"`, `"test"`, or `"predict"`. Defaults to ``None``.
         """
         # Divide batch size by the number of devices.
-        self.hparams.train_dataset = self.hparams.dataset.train.parsed_data
-        self.hparams.val_dataset = self.hparams.dataset.validation.parsed_data
-        self.hparams.test_dataset = self.hparams.dataset.test.parsed_data
+        self.hparams.train_dataset = self.hparams.dataset.train.data_path
+        self.hparams.val_dataset = self.hparams.dataset.validation.data_path
+        self.hparams.test_dataset = self.hparams.dataset.test.data_path
         if not self.data_train and not self.data_val and not self.data_test:
-            self.data_train = self.__load_data(self.hparams.train_dataset)
-            self.data_val = self.__load_data(self.hparams.val_dataset)
-            self.data_test = self.__load_data(self.hparams.test_dataset)
+            train_data, train_labels = ChessDataLoader().load_data(self.hparams.train_dataset)
+            val_data, val_labels = ChessDataLoader().load_data(self.hparams.val_dataset)
+            test_data, test_labels = ChessDataLoader().load_data(self.hparams.test_dataset)
+            train_data = torch.tensor(train_data).float()
+            train_labels = torch.tensor(train_labels).float().view(-1, 1)
+            val_data = torch.tensor(val_data).float()
+            val_labels = torch.tensor(val_labels).float().view(-1, 1)
+            test_data = torch.tensor(test_data).float()
+            test_labels = torch.tensor(test_labels).float().view(-1, 1)
+            self.data_train = TensorDataset(train_data, train_labels)
+            self.data_val = TensorDataset(val_data, val_labels)
+            self.data_test = TensorDataset(test_data, test_labels)
 
     def train_dataloader(self) -> DataLoader[Any]:
         """Create and return the train dataloader.
