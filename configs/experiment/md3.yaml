@@ -49,18 +49,18 @@ model:
     # hidden_size: 256
   compile: False
   loss_fns:
-  - _target_: src.models.components.loss_fn.BCELossCustom
-    tag: bse_loss
-    weight: 0.6
+  # - _target_: src.models.components.loss_fn.BCELossCustom
+  #   tag: bse_loss
+  #   weight: 0.6
   - _target_: src.models.components.loss_fn.MSELossCustom
     tag: mse_loss
-    weight: 0.2
+    weight: 0.6
   - _target_: src.models.components.loss_fn.CrossEntropyLossCustom
     tag: cross_entropy_loss
-    weight: 0.1
+    weight: 0.2
   - _target_: src.models.components.loss_fn.HuberLossCustom
     tag: huber_loss
-    weight: 0.1
+    weight: 0.2
 callbacks:
   model_checkpoint:
     _target_: lightning.pytorch.callbacks.ModelCheckpoint
