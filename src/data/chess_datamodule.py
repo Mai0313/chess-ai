@@ -123,6 +123,7 @@ class ChessDataModule(LightningDataModule):
                 or not os.path.exists(self.hparams.val_dataset)
                 or not os.path.exists(self.hparams.test_dataset)
             ):
+                ChessDataGenerator().convert_data(self.hparams.dataset.raw_data.data_path)
                 ChessDataGenerator().convert_data_from_realworld(
                     self.hparams.dataset.raw_data.data_path,
                     self.hparams.train_dataset,

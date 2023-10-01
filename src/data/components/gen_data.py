@@ -79,7 +79,7 @@ class ChessDataGenerator:
                 data = []
                 labels = []
                 output_filename = filename.replace(".pgn", ".npz")
-                with open(f"{input_path}/{filename}") as pgn:
+                with open(f"{input_path}/{filename}", encoding = "ISO-8859-1") as pgn:
                     while True:
                         game = chess.pgn.read_game(pgn)
                         if game is None:
@@ -176,4 +176,4 @@ if __name__ == "__main__":
     val_cases_path = "./data/val_cases.npz"
     ChessDataGenerator().convert_data(input_path)
     ChessDataGenerator().convert_data_from_realworld(input_path, train_cases_path, val_cases_path)
-    # ChessDataGenerator().generate_data(30, "./data/test_cases.npz")
+    ChessDataGenerator().generate_data(30, "./data/test_cases.npz")
