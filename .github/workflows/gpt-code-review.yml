@@ -44,5 +44,5 @@ jobs:
             ${{ steps.get_diff.outputs.pull_request_diff }}
           pull_request_chunk_size: "3500"
           extra_prompt: |-
-            You are very familiar with python too.
+            You are very familiar with python too, please review the code below and give me some advice. In the meantime, list the issues you found in the code below.
           log_level: "DEBUG"
