@@ -1,5 +1,5 @@
 # @package _global_
-task_name: chess_md1
+task_name: chess_md2
 run_name: default_run
 tags: ["dev"]
 train: True
