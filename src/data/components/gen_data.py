@@ -46,7 +46,6 @@ class ChessDataGenerator:
 
     def __board_to_array(self, board):
         board_array = np.zeros((8, 8, 12), dtype=np.float32)
-
         piece_idx = {
             "p": 0,
             "P": 6,
@@ -62,12 +61,11 @@ class ChessDataGenerator:
             "K": 11,
         }
 
-        for i in range(8):
-            for j in range(8):
-                square = 8 * (7 - j) + i  # Calculate square index
-                piece = board.piece_at(square)
-                if piece:
-                    board_array[j, i, piece_idx[piece.symbol()]] = 1.0
+        for square in chess.SQUARES:
+            piece = board.piece_at(square)
+            if piece:
+                rank, file = divmod(square, 8)
+                board_array[7 - rank, file, piece_idx[piece.symbol()]] = 1.0
         return board_array
 
     def convert_data_from_realworld(self, input_path, train_cases_path, val_cases_path):
