@@ -51,7 +51,16 @@ model:
   loss_fns:
   - _target_: src.models.components.loss_fn.BCELossCustom
     tag: original_loss
-    weight: 1
+    weight: 0.6
+  - _target_: src.models.components.loss_fn.MSELossCustom
+    tag: original_loss
+    weight: 0.2
+  - _target_: src.models.components.loss_fn.CrossEntropyLossCustom
+    tag: original_loss
+    weight: 0.1
+  - _target_: src.models.components.loss_fn.HuberLossCustom
+    tag: original_loss
+    weight: 0.1
 callbacks:
   model_checkpoint:
     _target_: lightning.pytorch.callbacks.ModelCheckpoint
