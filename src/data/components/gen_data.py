@@ -68,18 +68,16 @@ class ChessDataGenerator:
                 rank, file = divmod(square, 8)
                 board_array[7 - rank, file, piece_idx[piece.symbol()]] = 1.0
         return board_array
-    
+
     def convert_data(self, input_path):
         filenames = [f for f in os.listdir(input_path) if f.endswith(".pgn")]
         with Progress() as progress:
-            task = progress.add_task(
-                "[cyan]Converting PGN files to npz...", total=len(filenames)
-            )
+            task = progress.add_task("[cyan]Converting PGN files to npz...", total=len(filenames))
             for filename in filenames:
                 data = []
                 labels = []
                 output_filename = filename.replace(".pgn", ".npz")
-                with open(f"{input_path}/{filename}", encoding = "ISO-8859-1") as pgn:
+                with open(f"{input_path}/{filename}", encoding="ISO-8859-1") as pgn:
                     while True:
                         game = chess.pgn.read_game(pgn)
                         if game is None:
@@ -106,18 +104,16 @@ class ChessDataGenerator:
         filenames = [f for f in os.listdir(input_path) if f.endswith(".npz")]
 
         with Progress() as progress:
-            task = progress.add_task(
-                "[cyan]Loading data from npz files...", total=len(filenames)
-            )
+            task = progress.add_task("[cyan]Loading data from npz files...", total=len(filenames))
 
             for filename in filenames:
                 loaded_data = np.load(f"{input_path}/{filename}")
-                data = loaded_data['data']
-                labels = loaded_data['labels']
+                data = loaded_data["data"]
+                labels = loaded_data["labels"]
 
                 all_data.append(data)
                 all_labels.append(labels)
-                
+
                 progress.update(task, advance=1)
 
         # Concatenate all loaded data
