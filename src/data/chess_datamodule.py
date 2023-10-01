@@ -66,7 +66,6 @@ class ChessDataModule(LightningDataModule):
         pin_memory: bool = False,
         gen_data: bool = False,
         case_nums: int = 5000,
-        chunk_size: int = 1000,
         force_parse_data: bool = False,
     ) -> None:
         """Initialize a `ChessDataModule`.
@@ -79,7 +78,6 @@ class ChessDataModule(LightningDataModule):
         :param pin_memory: Whether to pin memory. Defaults to `False`.
         :param gen_data: Whether to generate data. Defaults to `False`.
         :param case_nums: The number of cases to generate. Defaults to `5000`.
-        :param chunk_size: The chunk size. Defaults to `1000`.
         """
         super().__init__()
 
@@ -109,21 +107,28 @@ class ChessDataModule(LightningDataModule):
         self.hparams.train_dataset = self.hparams.dataset.train.data_path
         self.hparams.val_dataset = self.hparams.dataset.validation.data_path
         self.hparams.test_dataset = self.hparams.dataset.test.data_path
-        if (
-            not os.path.exists(self.hparams.train_dataset)
-            or not os.path.exists(self.hparams.val_dataset)
-            or not os.path.exists(self.hparams.test_dataset)
-        ):
-            ChessDataGenerator().convert_data_from_realworld(
-                self.hparams.dataset.raw_data.data_path,
-                self.hparams.train_dataset,
-                self.hparams.val_dataset,
-            )
-            ChessDataGenerator().generate_data(30, self.hparams.test_dataset)
         if self.hparams.gen_data:
-            ChessDataGenerator().generate_data(500, self.hparams.train_dataset)
-            ChessDataGenerator().generate_data(10, self.hparams.val_dataset)
-            ChessDataGenerator().generate_data(10, self.hparams.test_dataset)
+            ChessDataGenerator().generate_data(
+                self.hparams.dataset.train.case_nums, self.hparams.train_dataset
+            )
+            ChessDataGenerator().generate_data(
+                self.hparams.dataset.validation.case_nums, self.hparams.val_dataset
+            )
+            ChessDataGenerator().generate_data(
+                self.hparams.dataset.test.case_nums, self.hparams.test_dataset
+            )
+        else:
+            if (
+                not os.path.exists(self.hparams.train_dataset)
+                or not os.path.exists(self.hparams.val_dataset)
+                or not os.path.exists(self.hparams.test_dataset)
+            ):
+                ChessDataGenerator().convert_data_from_realworld(
+                    self.hparams.dataset.raw_data.data_path,
+                    self.hparams.train_dataset,
+                    self.hparams.val_dataset,
+                )
+                ChessDataGenerator().generate_data(30, self.hparams.test_dataset)
 
     def setup(self, stage: Optional[str] = None) -> None:
         """Load data. Set variables: `self.data_train`, `self.data_val`, `self.data_test`.

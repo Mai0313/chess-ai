@@ -76,7 +76,9 @@ class ChessDataGenerator:
         filenames = [f for f in os.listdir(input_path) if f.endswith(".pgn")]
 
         with Progress() as progress:
-            task = progress.add_task("[cyan]Processing PGN files...", total=len(filenames))
+            task = progress.add_task(
+                "[cyan]Converting PGN files from real world...", total=len(filenames)
+            )
 
             for filename in filenames:
                 with open(f"{input_path}/{filename}") as pgn:
