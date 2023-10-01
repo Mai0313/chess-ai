@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from lightning.pytorch import LightningModule
 
 
 class ChessCNN(nn.Module):

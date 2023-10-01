@@ -54,6 +54,6 @@ class AlphaGoNet(nn.Module):
             x += residual
             x = nn.ReLU()(x)
 
-        policy = self.policy_head(x)
+        # policy = self.policy_head(x)
         value = self.value_head(x)
-        return policy, value
+        return value

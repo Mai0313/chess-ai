@@ -6,6 +6,7 @@ import chess.pgn
 from rich.progress import Progress
 from sklearn.model_selection import train_test_split
 import rootutils
+import gc
 
 rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
@@ -46,7 +47,6 @@ class ChessDataGenerator:
 
     def __board_to_array(self, board):
         board_array = np.zeros((8, 8, 12), dtype=np.float32)
-
         piece_idx = {
             "p": 0,
             "P": 6,
@@ -62,26 +62,22 @@ class ChessDataGenerator:
             "K": 11,
         }
 
-        for i in range(8):
-            for j in range(8):
-                square = 8 * (7 - j) + i  # Calculate square index
-                piece = board.piece_at(square)
-                if piece:
-                    board_array[j, i, piece_idx[piece.symbol()]] = 1.0
+        for square in chess.SQUARES:
+            piece = board.piece_at(square)
+            if piece:
+                rank, file = divmod(square, 8)
+                board_array[7 - rank, file, piece_idx[piece.symbol()]] = 1.0
         return board_array
 
-    def convert_data_from_realworld(self, input_path, train_cases_path, val_cases_path):
-        data = []
-        labels = []
+    def convert_data(self, input_path):
         filenames = [f for f in os.listdir(input_path) if f.endswith(".pgn")]
-
         with Progress() as progress:
-            task = progress.add_task(
-                "[cyan]Converting PGN files from real world...", total=len(filenames)
-            )
-
+            task = progress.add_task("[cyan]Converting PGN files to npz...", total=len(filenames))
             for filename in filenames:
-                with open(f"{input_path}/{filename}") as pgn:
+                data = []
+                labels = []
+                output_filename = filename.replace(".pgn", ".npz")
+                with open(f"{input_path}/{filename}", encoding="ISO-8859-1") as pgn:
                     while True:
                         game = chess.pgn.read_game(pgn)
                         if game is None:
@@ -95,15 +91,38 @@ class ChessDataGenerator:
                             )  # 1 for white's turn, 0 for black
                             data.append(board_array)
                             labels.append(label)
+                data = np.array(data)
+                labels = np.array(labels)
+                ChessDataLoader().save_data(data, labels, f"{input_path}/{output_filename}")
+                os.remove(f"{input_path}/{filename}")
+                progress.update(task, advance=1)
+                gc.collect()
+
+    def convert_data_from_realworld(self, input_path, train_cases_path, val_cases_path):
+        all_data = []
+        all_labels = []
+        filenames = [f for f in os.listdir(input_path) if f.endswith(".npz")]
+
+        with Progress() as progress:
+            task = progress.add_task("[cyan]Loading data from npz files...", total=len(filenames))
+
+            for filename in filenames:
+                loaded_data = np.load(f"{input_path}/{filename}")
+                data = loaded_data["data"]
+                labels = loaded_data["labels"]
+
+                all_data.append(data)
+                all_labels.append(labels)
 
                 progress.update(task, advance=1)
 
-        # Adjust dimensions
-        data = np.array(data)
-        labels = np.array(labels)
-        data = np.transpose(data, (0, 3, 1, 2))
+        # Concatenate all loaded data
+        all_data = np.concatenate(all_data, axis=0)
+        all_labels = np.concatenate(all_labels, axis=0)
+
+        # Split the data
         X_train, X_val, y_train, y_val = train_test_split(
-            data, labels, test_size=0.2, random_state=42
+            all_data, all_labels, test_size=0.2, random_state=42
         )
 
         ChessDataLoader().save_data(X_train, y_train, train_cases_path)
@@ -148,8 +167,9 @@ class ChessDataGenerator:
 
 
 if __name__ == "__main__":
-    input_path = "./data/20230929_raw_data"
+    input_path = "./data/20231001_raw_data"
     train_cases_path = "./data/train_cases.npz"
     val_cases_path = "./data/val_cases.npz"
+    ChessDataGenerator().convert_data(input_path)
     ChessDataGenerator().convert_data_from_realworld(input_path, train_cases_path, val_cases_path)
     ChessDataGenerator().generate_data(30, "./data/test_cases.npz")
