@@ -1,3 +1,4 @@
+import multiprocessing as mp
 from typing import Optional
 
 import chess
@@ -6,7 +7,6 @@ import chess.svg
 import IPython.display as display
 import numpy as np
 import torch
-import multiprocessing as mp
 
 
 class ChessData:
@@ -115,7 +115,6 @@ class ChessGame:
         """Resets the game board."""
         self.board.reset()
 
-
     def self_play(self, gui: bool):
         """The model plays against itself.
 
@@ -131,6 +130,7 @@ class ChessGame:
         """Two models play against each other.
 
         Args:
+            black_model (torch.nn.Module): Model to be used when playing as black.
             gui (bool): Flag indicating whether to show a GUI. Defaults to False.
         """
         while not self.board.is_game_over():
@@ -175,6 +175,7 @@ class ChessGame:
             gui (bool): Flag indicating whether to show a GUI.
             stockfish_path (str, optional): Path to the Stockfish executable.
                                             Defaults to "../stockfish_linux/stockfish-ubuntu-x86-64-avx2".
+            cpu_nums (int, optional): Number of CPUs to be used by Stockfish. Defaults to 4.
         """
         engine = chess.engine.SimpleEngine.popen_uci(stockfish_path)
 
@@ -191,12 +192,13 @@ class ChessGame:
             ChessBoard().show(self.board, gui)
 
         engine.quit()
-    
+
     def solve_puzzle(self, board: chess.Board, gui: bool) -> chess.Move:
         """Solve the chess puzzle and return the best move.
 
         Args:
             board (chess.Board): The current chess board state.
+            gui (bool): Flag indicating whether to show a GUI.
 
         Returns:
             chess.Move: The best move for the given board state.
