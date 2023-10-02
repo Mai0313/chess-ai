@@ -44,3 +44,27 @@ class HuberLossCustom:
     def __call__(self, prediction, y):
         loss = self.criterion(prediction, y)
         return loss * self.weight
+
+
+class AlphaLoss(torch.nn.Module):
+    """Custom loss as defined in the paper :
+    (z - v) ** 2 --> MSE Loss
+    (-pi * logp) --> Cross Entropy Loss
+    z : self_play_winner
+    v : winner
+    pi : self_play_probas
+    p : probas
+
+    The loss is then averaged over the entire batch
+    """
+
+    def __init__(self, tag, weight):
+        self.tag = tag
+        self.weight = weight
+        super().__init__()
+
+    def forward(self, winner, self_play_winner, probas, self_play_probas):
+        value_error = (self_play_winner - winner) ** 2
+        policy_error = torch.sum((-self_play_probas * (1e-6 + probas).log()), 1)
+        total_error = (value_error.view(-1) + policy_error).mean()
+        return total_error * self.weight
