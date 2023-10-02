@@ -59,7 +59,7 @@ class ChessModule(LightningModule):
         # also ensures init params will be stored in ckpt
         self.save_hyperparameters(logger=False)
 
-        self.nets = net
+        self.net = net
 
         # loss function
         self.loss_fns = loss_fns
@@ -83,9 +83,7 @@ class ChessModule(LightningModule):
         :param x: A tensor of images.
         :return: A tensor of logits.
         """
-        for net in self.nets:
-            x = net(x)
-        return x
+        return self.net(x)
 
     def on_train_start(self) -> None:
         """Lightning hook that is called when training begins."""
@@ -107,20 +105,16 @@ class ChessModule(LightningModule):
             - A tensor of predictions.
             - A tensor of target labels.
         """
-        x, value_y, policy_y = batch
-        value_output, policy_output = self.forward(x)
+        x, y = batch
+        prediction = self.forward(x)
 
         losses = {}  # a dict of {loss_fn_name: loss_value}
         losses["total_loss"] = 0.0
-        for loss_fn in self.value_loss_fns:
-            losses[loss_fn.tag] = loss_fn(value_output, value_y)
+        for loss_fn in self.loss_fns:
+            losses[loss_fn.tag] = loss_fn(prediction, y)
             losses["total_loss"] += losses[loss_fn.tag] * loss_fn.weight
 
-        for loss_fn in self.policy_loss_fns:
-            losses[loss_fn.tag] = loss_fn(policy_output, policy_y)
-            losses["total_loss"] += losses[loss_fn.tag] * loss_fn.weight
-
-        return losses, value_output, policy_output
+        return losses, x, y, prediction
 
     def training_step(
         self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int
