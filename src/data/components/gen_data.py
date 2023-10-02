@@ -93,6 +93,7 @@ class ChessDataGenerator:
                             labels.append(label)
                 data = np.array(data)
                 labels = np.array(labels)
+                data = np.transpose(data, (0, 3, 1, 2))
                 ChessDataLoader().save_data(data, labels, f"{input_path}/{output_filename}")
                 os.remove(f"{input_path}/{filename}")
                 progress.update(task, advance=1)
