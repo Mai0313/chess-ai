@@ -3,14 +3,14 @@ name: Tests
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
       - release/*
 
 jobs:
-  run_tests:
+  run_tests_ubuntu:
     runs-on: ${{ matrix.os }}
     # container: catthehacker/ubuntu:act-latest  # Uncomment it if you use it on Gitea
 
@@ -20,9 +20,11 @@ jobs:
         os:
           - ubuntu-latest
         python-version:
+          - "3.8"
           - "3.9"
+          - "3.10"
 
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - name: Disable SSL Verify
@@ -45,7 +47,6 @@ jobs:
           pip install -r requirements.txt
           pip install pytest
           pip install sh
-          git clone https://gitea.mediatek.inc/AITH/ai-thermal-simulator-pl-dataset.git
 
       - name: List dependencies
         run: |
