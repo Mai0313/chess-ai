@@ -10,7 +10,7 @@ on:
       - release/*
 
 jobs:
-  run_tests_ubuntu:
+  run_tests:
     runs-on: ${{ matrix.os }}
     # container: catthehacker/ubuntu:act-latest  # Uncomment it if you use it on Gitea
 

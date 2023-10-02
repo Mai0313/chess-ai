@@ -1,13 +1,14 @@
 from pathlib import Path
 
+import autorootcwd
 import pytest
 import torch
-import autorootcwd
-
-from src.data.chess_datamodule import ChessDataModule
 from omegaconf import OmegaConf
 
+from src.data.chess_datamodule import ChessDataModule
+
 cfg = OmegaConf.load("configs/experiment/md1.yaml")
+
 
 def test_chess_datamodule() -> None:
     """Tests `ChessDataModule` to verify that it can be downloaded correctly, that the necessary
@@ -16,7 +17,6 @@ def test_chess_datamodule() -> None:
 
     :param batch_size: Batch size of the data to be loaded by the dataloader.
     """
-
     gen_data = True  # Force to generate data
     cfg.data.dataset.train.case_nums = 10
     cfg.data.dataset.validation.case_nums = 5
@@ -28,16 +28,14 @@ def test_chess_datamodule() -> None:
     batch_size = cfg.data.batch_size
 
     dm = ChessDataModule(
-        dataset = dataset,
-        gen_data = gen_data,
-        num_workers = num_workers,
-        pin_memory = pin_memory,
-        
+        dataset=dataset,
+        gen_data=gen_data,
+        num_workers=num_workers,
+        pin_memory=pin_memory,
     )
     dm.prepare_data()
 
     assert not dm.data_train and not dm.data_val and not dm.data_test
-
 
     dm.setup()
     assert dm.data_train and dm.data_val and dm.data_test
