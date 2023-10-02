@@ -14,7 +14,7 @@ lightning>=2.0.8
 mlflow==2.7.1
 pydantic<2.0,>=1.7.4
 SQLAlchemy==1.4.49
-aim<4.0.0
+aim<5.0.0
 chess
 pre-commit
 dvc
