@@ -37,3 +37,4 @@ wandb
 fire
 pytest
 autorootcwd
+sh
