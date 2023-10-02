@@ -115,7 +115,8 @@ trainer:
   default_root_dir: ${paths.output_dir}
   accelerator: gpu
   strategy: auto
-  devices: auto
+  devices:
+  - 0
   num_nodes: 1
   precision: 32-true
   logger: True

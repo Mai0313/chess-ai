@@ -40,13 +40,6 @@ model:
     patience: 10
   net:
     _target_: src.models.components.cnn.ChessCNN
-    # in_channels: 1
-    # kernel_size: 3
-    # stride: 1
-    # padding: 1
-    # num_classes: 36
-    # num_chars: 5
-    # hidden_size: 256
   compile: False
   loss_fns:
   - _target_: src.models.components.loss_fn.BCELossCustom
@@ -110,7 +103,8 @@ trainer:
   default_root_dir: ${paths.output_dir}
   accelerator: gpu
   strategy: auto
-  devices: auto
+  devices:
+  - 0
   num_nodes: 1
   precision: 32-true
   logger: True
