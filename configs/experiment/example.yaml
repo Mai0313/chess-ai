@@ -1,41 +1,150 @@
 # @package _global_
-
-# to execute this experiment run:
-# python train.py experiment=example
-
-defaults:
-  - override /data: mnist
-  - override /model: mnist
-  - override /callbacks: default
-  - override /trainer: default
-
-# all parameters below will be merged with parameters from default configurations set above
-# this allows you to overwrite only specified parameters
-
-tags: ["mnist", "simple_dense_net"]
-
-seed: 12345
-
-trainer:
-  min_epochs: 10
-  max_epochs: 10
-  gradient_clip_val: 0.5
-
-model:
-  optimizer:
-    lr: 0.002
-  net:
-    lin1_size: 128
-    lin2_size: 256
-    lin3_size: 64
-  compile: false
-
+task_name: example
+run_name: default_run
+tags: ["dev"]
+train: True
+test: True
+ckpt_path: null
+seed: null
 data:
+  _target_: src.data.chess_datamodule.ChessDataModule
   batch_size: 64
-
+  num_workers: 0
+  pin_memory: False
+  gen_data: False
+  dataset:
+    raw_data:
+      data_path: ${paths.data_dir}/20230929_raw_data
+    train:
+      data_path: ${paths.data_dir}/train_cases.npz
+      case_nums: 500
+    validation:
+      data_path: ${paths.data_dir}/val_cases.npz
+      case_nums: 30
+    test:
+      data_path: ${paths.data_dir}/test_cases.npz
+      case_nums: 30
+  force_parse_data: False
+model:
+  _target_: src.models.chess_module.ChessModule
+  optimizer:
+    _target_: torch.optim.Adam
+    _partial_: true
+    lr: 0.001
+    weight_decay: 0.0
+  scheduler:
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    _partial_: true
+    mode: min
+    factor: 0.1
+    patience: 10
+  net:
+    _target_: src.models.components.cnn.ChessCNN
+  compile: False
+  loss_fns:
+  - _target_: src.models.components.loss_fn.BCELossCustom
+    tag: original_loss
+    weight: 1
+callbacks:
+  model_checkpoint:
+    _target_: lightning.pytorch.callbacks.ModelCheckpoint
+    dirpath: ${paths.output_dir}/checkpoints
+    filename: epoch_{epoch:03d}
+    monitor: val/total_loss
+    verbose: false
+    save_last: true
+    save_top_k: -1
+    mode: min
+    auto_insert_metric_name: false
+    save_weights_only: false
+    every_n_train_steps: null
+    train_time_interval: null
+    every_n_epochs: 20
+    save_on_train_epoch_end: null
+  model_summary:
+    _target_: lightning.pytorch.callbacks.RichModelSummary
+    max_depth: -1
+  lr_monitor:
+    _target_: lightning.pytorch.callbacks.LearningRateMonitor
+    logging_interval: epoch
 logger:
-  wandb:
-    tags: ${tags}
-    group: "mnist"
+  csv:
+    _target_: lightning.pytorch.loggers.csv_logs.CSVLogger
+    save_dir: ${paths.output_dir}
+    name: csv/
+    prefix: ''
+  mlflow:
+    _target_: lightning.pytorch.loggers.mlflow.MLFlowLogger
+    experiment_name: ${task_name}
+    run_name: ${run_name}
+    tracking_uri: ${paths.log_dir}/mlflow/mlruns
+    tags: null
+    prefix: ''
+    artifact_location: null
+  tensorboard:
+    _target_: lightning.pytorch.loggers.tensorboard.TensorBoardLogger
+    save_dir: ${paths.output_dir}/tensorboard/
+    name: null
+    log_graph: false
+    default_hp_metric: true
+    prefix: ''
   aim:
-    experiment: "mnist"
+    _target_: aim.pytorch_lightning.AimLogger
+    repo: ${paths.log_dir}/aim/aimruns
+    experiment: ${task_name}
+    train_metric_prefix: "train/"
+    val_metric_prefix: "val/"
+    test_metric_prefix: "test/"
+    system_tracking_interval: 10
+    log_system_params: true
+    capture_terminal_logs: true
+trainer:
+  _target_: lightning.pytorch.trainer.Trainer
+  default_root_dir: ${paths.output_dir}
+  accelerator: gpu
+  strategy: auto
+  devices:
+  - 0
+  num_nodes: 1
+  precision: 32-true
+  logger: True
+  fast_dev_run: False
+  min_epochs: 10
+  max_epochs: 720
+  max_steps: -1
+  min_steps: null
+  max_time: null
+  limit_train_batches: null
+  limit_val_batches: null
+  limit_test_batches: null
+  limit_predict_batches: null
+  overfit_batches: 0.0
+  val_check_interval: null
+  check_val_every_n_epoch: 1
+  num_sanity_val_steps: null
+  log_every_n_steps: null
+  enable_checkpointing: null
+  enable_progress_bar: True
+  enable_model_summary: null
+  accumulate_grad_batches: 1
+  gradient_clip_val: null
+  gradient_clip_algorithm: null
+  deterministic: False
+  benchmark: null
+  inference_mode: True
+  use_distributed_sampler: True
+  detect_anomaly: False
+  barebones: False
+  plugins: null
+  sync_batchnorm: False
+  reload_dataloaders_every_n_epochs: 0
+paths:
+  root_dir: ${oc.env:PROJECT_ROOT}
+  data_dir: ${paths.root_dir}/data/
+  log_dir: ${paths.root_dir}/logs/
+  output_dir: ${hydra:runtime.output_dir}
+  work_dir: ${hydra:runtime.cwd}
+extras:
+  ignore_warnings: True
+  enforce_tags: True
+  print_config: True

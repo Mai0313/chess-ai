@@ -35,3 +35,6 @@ tensorboard
 tensorboardX
 wandb
 fire
+pytest
+autorootcwd
+sh

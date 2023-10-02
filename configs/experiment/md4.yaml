@@ -39,24 +39,33 @@ model:
     factor: 0.1
     patience: 10
   net:
-    - _target_: src.models.components.alpha_zero.Extractor
-      inplanes: 12
-      outplanes: 10
-      blocks: 10
-    - _target_: src.models.components.alpha_zero.ValueNet
-      inplanes: 8
-      outplanes: 10
-    - _target_: src.models.components.alpha_zero.PolicyNet
-      inplanes: 8
-      outplanes: 10
+    _target_: src.models.components.alpha_net.AlphaGoNet
+    input_channels: 12
+    board_size: 8
+    # - _target_: src.models.components.alpha_zero.Extractor
+    #   inplanes: 12
+    #   outplanes: 10
+    #   blocks: 10
+    # - _target_: src.models.components.alpha_zero.ValueNet
+    #   inplanes: 8
+    #   outplanes: 10
+    # - _target_: src.models.components.alpha_zero.PolicyNet
+    #   inplanes: 8
+    #   outplanes: 10
   compile: False
   loss_fns:
-  # - _target_: src.models.components.loss_fn.BCELossCustom
-  #   tag: bse_loss
-  #   weight: 0.6
-  - _target_: src.models.components.loss_fn.AlphaLoss
-    tag: alpha_loss
-    weight: 1
+  - _target_: src.models.components.loss_fn.MSELossCustom
+    tag: mse_loss
+    weight: 0.6
+  - _target_: src.models.components.loss_fn.CrossEntropyLossCustom
+    tag: cross_entropy_loss
+    weight: 0.2
+  - _target_: src.models.components.loss_fn.HuberLossCustom
+    tag: huber_loss
+    weight: 0.2
+  # - _target_: src.models.components.loss_fn.AlphaLoss
+  #   tag: alpha_loss
+  #   weight: 1
 callbacks:
   model_checkpoint:
     _target_: lightning.pytorch.callbacks.ModelCheckpoint
@@ -115,7 +124,8 @@ trainer:
   default_root_dir: ${paths.output_dir}
   accelerator: gpu
   strategy: auto
-  devices: auto
+  devices:
+  - 0
   num_nodes: 1
   precision: 32-true
   logger: True
