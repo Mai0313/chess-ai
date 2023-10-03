@@ -38,3 +38,5 @@ fire
 pytest
 autorootcwd
 sh
+ipykernel
+ipywidgets
