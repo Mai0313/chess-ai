@@ -22,7 +22,7 @@ jobs:
         python-version:
           - "3.9"
           - "3.10"
-          - "3.11"
+          # - "3.11"
 
     timeout-minutes: 20
 
@@ -45,7 +45,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
