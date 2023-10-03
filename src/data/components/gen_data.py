@@ -77,26 +77,40 @@ class ChessDataGenerator:
                 data = []
                 labels = []
                 output_filename = filename.replace(".pgn", ".npz")
-                with open(f"{input_path}/{filename}", encoding="ISO-8859-1") as pgn:
-                    while True:
-                        game = chess.pgn.read_game(pgn)
-                        if game is None:
-                            break  # End of file
-                        board = game.board()
-                        for move in game.mainline_moves():
-                            board.push(move)
-                            board_array = self.__board_to_array(board)
-                            label = (
-                                1.0 if board.turn == chess.WHITE else 0.0
-                            )  # 1 for white's turn, 0 for black
-                            data.append(board_array)
-                            labels.append(label)
+                try:
+                    with open(f"{input_path}/{filename}") as pgn:
+                        while True:
+                            game = chess.pgn.read_game(pgn)
+                            if game is None:
+                                break  # End of file
+                            board = game.board()
+                            for move in game.mainline_moves():
+                                board.push(move)
+                                board_array = self.__board_to_array(board)
+                                label = (
+                                    1.0 if board.turn == chess.WHITE else 0.0
+                                )  # 1 for white's turn, 0 for black
+                                data.append(board_array)
+                                labels.append(label)
+                        progress.update(
+                            task,
+                            advance=1,
+                            description=f"[cyan]Processing {filename}... Event: {game.headers['Event']}",
+                        )
+                except UnicodeDecodeError:
+                    print(f"Skipping {filename} due to UnicodeDecodeError.")
+                    progress.update(
+                        task,
+                        advance=1,
+                        description=f"[cyan]Skipping {filename} due to UnicodeDecodeError.",
+                    )
+                    continue  # Skip to the next iteration
+
                 data = np.array(data)
                 labels = np.array(labels)
                 data = np.transpose(data, (0, 3, 1, 2))
                 ChessDataLoader().save_data(data, labels, f"{input_path}/{output_filename}")
                 # os.remove(f"{input_path}/{filename}")
-                progress.update(task, advance=1)
                 gc.collect()
 
     def convert_data_from_realworld(self, input_path, train_cases_path, val_cases_path):
