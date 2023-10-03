@@ -8,8 +8,7 @@ class ChessTransformer(nn.Module):
 
         # Transformer layer
         self.transformer_encoder = nn.TransformerEncoder(
-            nn.TransformerEncoderLayer(d_model, nhead),
-            num_layers=num_layers
+            nn.TransformerEncoderLayer(d_model, nhead), num_layers=num_layers
         )
 
         # Positional Encoding
@@ -24,7 +23,7 @@ class ChessTransformer(nn.Module):
 
     def forward(self, x):
         # Flatten the board
-        x = x.view(x.size(0), 8*8, -1)
+        x = x.view(x.size(0), 8 * 8, -1)
         x += self.positional_encoding
 
         # Transformer forward
