@@ -1,332 +1,110 @@
-import random
-import threading
-from collections import OrderedDict
-from copy import deepcopy
-
+import chess
 import numpy as np
 import torch
 
-MCTS_SIM = 64
-MCTS_PARALLEL = 4
-BATCH_SIZE_EVAL = 2
-GOBAN_SIZE = 9
-HISTORY = 7
-C_PUCT = 0.2
-EPS = 0.25
-ALPHA = 0.03
+
+def array_to_board(board_array):
+    piece_symbols = {
+        0: "p",
+        1: "n",
+        2: "b",
+        3: "r",
+        4: "q",
+        5: "k",
+        6: "P",
+        7: "N",
+        8: "B",
+        9: "R",
+        10: "Q",
+        11: "K",
+    }
+
+    board = chess.Board()
+    board.clear_board()
+
+    for rank in range(8):
+        for file in range(8):
+            for idx, symbol in piece_symbols.items():
+                if board_array[7 - rank, file, idx].item() == 1.0:
+                    board.set_piece_at(rank * 8 + file, chess.Piece.from_symbol(symbol))
+    return board
 
 
-def _opt_select(nodes, c_puct=C_PUCT):
-    """Optimized version of the selection based of the PUCT formula"""
-    total_count = 0
-    for i in range(nodes.shape[0]):
-        total_count += nodes[i][1]
-
-    action_scores = np.zeros(nodes.shape[0])
-    for i in range(nodes.shape[0]):
-        action_scores[i] = nodes[i][0] + c_puct * nodes[i][2] * (
-            np.sqrt(total_count) / (1 + nodes[i][1])
-        )
-
-    equals = np.where(action_scores == np.max(action_scores))[0]
-    if equals.shape[0] > 0:
-        return np.random.choice(equals)
-    return equals[0]
-
-
-def sample_rotation(state, num=8):
-    """Apply a certain number of random transformation to the input state"""
-    ## Create the dihedral group of a square with all the operations needed
-    ## in order to get the specific transformation and randomize their order
-    dh_group = [
-        (None, None),
-        ((np.rot90, 1), None),
-        ((np.rot90, 2), None),
-        ((np.rot90, 3), None),
-        (np.fliplr, None),
-        (np.flipud, None),
-        (np.flipud, (np.rot90, 1)),
-        (np.fliplr, (np.rot90, 1)),
-    ]
-    random.shuffle(dh_group)
-
-    states = []
-    boards = (HISTORY + 1) * 2  ## Number of planes to rotate
-
-    for idx in range(num):
-        new_state = np.zeros(
-            (
-                boards + 1,
-                GOBAN_SIZE,
-                GOBAN_SIZE,
-            )
-        )
-        new_state[:boards] = state[:boards]
-
-        ## Apply the transformations in the tuple defining how to get
-        ## the desired dihedral rotation / transformation
-        for grp in dh_group[idx]:
-            for i in range(boards):
-                if isinstance(grp, tuple):
-                    new_state[i] = grp[0](new_state[i], k=grp[1])
-                elif grp is not None:
-                    new_state[i] = grp(new_state[i])
-
-        new_state[boards] = state[boards]
-        states.append(new_state)
-
-    if len(states) == 1:
-        return np.array(states[0])
-    return np.array(states)
-
-
-def dirichlet_noise(probas):
-    """Add Dirichlet noise in the root node"""
-    dim = (probas.shape[0],)
-    new_probas = (1 - EPS) * probas + EPS * np.random.dirichlet(np.full(dim, ALPHA))
-    return new_probas
-
-
-class SearchThread(threading.Thread):
-    def __init__(
-        self,
-        mcts,
-        game,
-        eval_queue,
-        result_queue,
-        thread_id,
-        lock,
-        condition_search,
-        condition_eval,
-    ):
-        """Run a single simulation"""
-        threading.Thread.__init__(self)
-        self.eval_queue = eval_queue
-        self.result_queue = result_queue
-        self.mcts = mcts
-        self.game = game
-        self.lock = lock
-        self.thread_id = thread_id
-        self.condition_eval = condition_eval
-        self.condition_search = condition_search
-
-    def run(self):
-        game = deepcopy(self.game)
-        state = game.state
-        current_node = self.mcts.root
-        done = False
-
-        ## Traverse the tree until leaf
-        while not current_node.is_leaf() and not done:
-            ## Select the action that maximizes the PUCT algorithm
-            current_node = current_node.childrens[
-                _opt_select(
-                    np.array([[node.q, node.n, node.p] for node in current_node.childrens])
-                )
-            ]
-
-            ## Virtual loss since multithreading
-            self.lock.acquire()
-            current_node.n += 1
-            self.lock.release()
-
-            state, _, done = game.step(current_node.move)
-
-        if not done:
-            ## Add current leaf state with random dihedral transformation
-            ## to the evaluation queue
-            self.condition_search.acquire()
-            self.eval_queue[self.thread_id] = sample_rotation(state, num=1)
-            self.condition_search.notify()
-            self.condition_search.release()
-
-            ## Wait for the evaluator to be done
-            self.condition_eval.acquire()
-            while self.thread_id not in self.result_queue.keys():
-                self.condition_eval.wait()
-
-            ## Copy the result to avoid GPU memory leak
-            result = self.result_queue.pop(self.thread_id)
-            probas = np.array(result[0])
-            v = float(result[1])
-            self.condition_eval.release()
-
-            ## Add noise in the root node
-            if not current_node.parent:
-                probas = dirichlet_noise(probas)
-
-            ## Modify probability vector depending on valid moves
-            ## and normalize after that
-            valid_moves = game.get_legal_moves()
-            illegal_moves = np.setdiff1d(
-                np.arange(game.board_size**2 + 1), np.array(valid_moves)
-            )
-            probas[illegal_moves] = 0
-            total = np.sum(probas)
-            probas /= total
-
-            ## Create the child nodes for the current leaf
-            self.lock.acquire()
-            current_node.expand(probas)
-
-            ## Backpropagate the result of the simulation
-            while current_node.parent:
-                current_node.update(v)
-                current_node = current_node.parent
-            self.lock.release()
-
-
-class EvaluatorThread(threading.Thread):
-    def __init__(self, player, eval_queue, result_queue, condition_search, condition_eval):
-        """Used to be able to batch evaluate positions during tree search"""
-        threading.Thread.__init__(self)
-        self.eval_queue = eval_queue
-        self.result_queue = result_queue
-        self.player = player
-        self.condition_search = condition_search
-        self.condition_eval = condition_eval
-
-    def run(self):
-        for sim in range(MCTS_SIM // MCTS_PARALLEL):
-            ## Wait for the eval_queue to be filled by new positions to evaluate
-            self.condition_search.acquire()
-            while len(self.eval_queue) < MCTS_PARALLEL:
-                self.condition_search.wait()
-            self.condition_search.release()
-
-            self.condition_eval.acquire()
-            while len(self.result_queue) < MCTS_PARALLEL:
-                keys = list(self.eval_queue.keys())
-                max_len = BATCH_SIZE_EVAL if len(keys) > BATCH_SIZE_EVAL else len(keys)
-
-                ## Predict the feature_maps, policy and value
-                states = torch.tensor(
-                    np.array(list(self.eval_queue.values()))[0:max_len], dtype=torch.float
-                )
-                v, probas = self.player.predict(states)
-
-                ## Replace the state with the result in the eval_queue
-                ## and notify all the threads that the result are available
-                for idx, i in zip(keys, range(max_len)):
-                    del self.eval_queue[idx]
-                    self.result_queue[idx] = (probas[i].cpu().data.numpy(), v[i])
-
-                self.condition_eval.notifyAll()
-            self.condition_eval.release()
-
-
-class Node:
-    def __init__(self, parent=None, proba=None, move=None):
-        """P : probability of reaching that node, given by the policy net
-        n : number of time this node has been visited during simulations
-        w : total action value, given by the value network
-        q : mean action value (w / n)
-        """
-        self.p = proba
-        self.n = 0
-        self.w = 0
-        self.q = 0
-        self.childrens = []
+class MCTSNode:
+    def __init__(self, state, parent=None):
+        self.state = state
         self.parent = parent
-        self.move = move
+        self.children = []
+        self.visits = 0
+        self.value_sum = 0
+        self.values = []
+        self.is_expanded = False
 
-    def update(self, v):
-        """Update the node statistics after a playout"""
-        self.w = self.w + v
-        self.q = self.w / self.n if self.n > 0 else 0
+    @property
+    def is_terminal(self):
+        board = array_to_board(self.state[0].cpu().numpy())
+        return board.is_game_over()
 
-    def is_leaf(self):
-        """Check whether node is a leaf or not"""
-        return len(self.childrens) == 0
+    @property
+    def value(self):
+        if self.visits == 0:
+            return 0
+        return self.value_sum / self.visits
 
-    def expand(self, probas):
-        """Create a child node for every non-zero move probability"""
-        self.childrens = [
-            Node(parent=self, move=idx, proba=probas[idx])
-            for idx in range(probas.shape[0])
-            if probas[idx] > 0
+    def expand(self, child_states):
+        self.is_expanded = True
+        for state in child_states:
+            self.children.append(MCTSNode(state, parent=self))
+
+    def best_child(self, c):
+        uct_values = [
+            (child.value / (child.visits + 1e-10)) + c * np.sqrt(np.log(self.visits + 1) / (child.visits + 1e-10))
+            for child in self.children
         ]
+        return self.children[np.argmax(uct_values)]
 
 
-class MCTS:
-    def __init__(self):
-        self.root = Node()
+def MCTS(root, model, num_simulations, c=1):
+    for _ in range(num_simulations):
+        leaf = traverse(root)
+        simulation_result = rollout(leaf, model)
+        backpropagate(leaf, simulation_result)
 
-    def _draw_move(self, action_scores, competitive=False):
-        """Find the best move, either deterministically for competitive play
-        or stochiasticly according to some temperature constant
-        """
-        if competitive:
-            moves = np.where(action_scores == np.max(action_scores))[0]
-            move = np.random.choice(moves)
-            total = np.sum(action_scores)
-            probas = action_scores / total
+    return max(root.children, key=lambda node: node.visits).state
 
-        else:
-            total = np.sum(action_scores)
-            probas = action_scores / total
-            move = np.random.choice(action_scores.shape[0], p=probas)
 
-        return move, probas
+def traverse(node):
+    while node.is_expanded:
+        node = node.best_child(c=1)
+    return node
 
-    def advance(self, move):
-        """Manually advance in the tree, used for GTP"""
-        for idx in range(len(self.root.childrens)):
-            if self.root.childrens[idx].move == move:
-                final_idx = idx
-                break
-        self.root = self.root.childrens[final_idx]
 
-    def search(self, current_game, player, competitive=False):
-        """Search the best moves through the game tree with
-        the policy and value network to update node statistics
-        """
-        ## Locking for thread synchronization
-        condition_eval = threading.Condition()
-        condition_search = threading.Condition()
-        lock = threading.Lock()
+def rollout(node, model):
+    pi_logits, value = model(torch.tensor(node.state).float())
+    probs = torch.nn.functional.softmax(pi_logits, dim=-1).cpu().numpy()
 
-        ## Single thread for the evaluator (for now)
-        eval_queue = OrderedDict()
-        result_queue = {}
-        evaluator = EvaluatorThread(
-            player, eval_queue, result_queue, condition_search, condition_eval
-        )
-        evaluator.start()
+    if node.is_terminal:
+        return -node.value
 
-        threads = []
-        ## Do exactly the required number of simulation per thread
-        for sim in range(MCTS_SIM // MCTS_PARALLEL):
-            for idx in range(MCTS_PARALLEL):
-                threads.append(
-                    SearchThread(
-                        self,
-                        current_game,
-                        eval_queue,
-                        result_queue,
-                        idx,
-                        lock,
-                        condition_search,
-                        condition_eval,
-                    )
-                )
-                threads[-1].start()
-            for thread in threads:
-                thread.join()
-        evaluator.join()
+    valid_actions = list(node.state.legal_moves)
 
-        ## Create the visit count vector
-        action_scores = np.zeros((current_game.board_size**2 + 1,))
-        for node in self.root.childrens:
-            action_scores[node.move] = node.n
+    # 確保 probs 只涵蓋 valid_actions
+    probs = probs[np.array([action.uci() for action in valid_actions])]
+    probs /= probs.sum()
 
-        ## Pick the best move
-        final_move, final_probas = self._draw_move(action_scores, competitive=competitive)
+    chosen_action = np.random.choice(valid_actions, p=probs)
 
-        ## Advance the root to keep the statistics of the childrens
-        for idx in range(len(self.root.childrens)):
-            if self.root.childrens[idx].move == final_move:
-                break
-        self.root = self.root.childrens[idx]
+    new_state = node.state.copy()
+    new_state.push(chosen_action)
 
-        return final_probas, final_move
+    child_states = [new_state]
+    node.expand(child_states)
+
+    return value.item()
+
+
+def backpropagate(node, value):
+    while node is not None:
+        node.visits += 1
+        node.value_sum += value
+        node = node.parent
