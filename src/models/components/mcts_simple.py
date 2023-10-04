@@ -22,6 +22,7 @@ class Node:
         if self.parent:
             self.parent.backpropagate(reward)
 
+
 def MCTS(root_state, iterations):
     root = Node(root_state)
     for _ in range(iterations):

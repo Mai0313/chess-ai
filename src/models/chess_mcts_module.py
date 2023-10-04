@@ -116,7 +116,9 @@ class ChessMCTSModule(LightningModule):
         mcts_policy_vector = MCTS(MCTSNode(x), self.net, num_simulations=1000)
 
         # Convert MCTS result to tensor and move to the same device as policy_logits
-        mcts_policy_tensor = torch.tensor(mcts_policy_vector, dtype=torch.float32, device=policy_logits.device)
+        mcts_policy_tensor = torch.tensor(
+            mcts_policy_vector, dtype=torch.float32, device=policy_logits.device
+        )
 
         # Now, compute the policy loss between the mcts_policy_tensor and the model's policy output
         policy_loss = F.cross_entropy(policy_logits, mcts_policy_tensor)
@@ -127,11 +129,7 @@ class ChessMCTSModule(LightningModule):
         total_loss = policy_loss + value_loss
 
         # Record the losses
-        losses = {
-            "policy_loss": policy_loss,
-            "value_loss": value_loss,
-            "total_loss": total_loss
-        }
+        losses = {"policy_loss": policy_loss, "value_loss": value_loss, "total_loss": total_loss}
         return losses, policy_logits, predicted_value
 
     def training_step(

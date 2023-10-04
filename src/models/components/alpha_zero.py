@@ -27,7 +27,7 @@ def initialize_weights(net: nn.Module) -> None:
 
     for module in net.modules():
         if isinstance(module, (nn.Conv2d, nn.Linear)):
-            nn.init.kaiming_uniform_(module.weight, nonlinearity='relu')
+            nn.init.kaiming_uniform_(module.weight, nonlinearity="relu")
 
             if module.bias is not None:
                 nn.init.zeros_(module.bias)

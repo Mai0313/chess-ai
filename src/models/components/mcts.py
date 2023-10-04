@@ -58,7 +58,8 @@ class MCTSNode:
 
     def best_child(self, c):
         uct_values = [
-            (child.value / (child.visits + 1e-10)) + c * np.sqrt(np.log(self.visits + 1) / (child.visits + 1e-10))
+            (child.value / (child.visits + 1e-10))
+            + c * np.sqrt(np.log(self.visits + 1) / (child.visits + 1e-10))
             for child in self.children
         ]
         return self.children[np.argmax(uct_values)]
