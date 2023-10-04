@@ -92,11 +92,7 @@ class ChessDataGenerator:
                                 )  # 1 for white's turn, 0 for black
                                 data.append(board_array)
                                 labels.append(label)
-                        progress.update(
-                            task,
-                            advance=1,
-                            description=f"[cyan]Processing {filename}... Event: {game.headers['Event']}",
-                        )
+                        progress.update(task, advance=1)
                 except UnicodeDecodeError:
                     print(f"Skipping {filename} due to UnicodeDecodeError.")
                     progress.update(
