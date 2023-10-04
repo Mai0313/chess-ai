@@ -40,13 +40,9 @@ model:
     patience: 10
   net:
     _target_: src.models.components.transformer.ChessTransformer
-    input_channels: 12
-    board_size: 8
-    # stride: 1
-    # padding: 1
-    # num_classes: 36
-    # num_chars: 5
-    # hidden_size: 256
+    d_model: 512
+    nhead: 8
+    num_layers: 6
   compile: False
   loss_fns:
   # - _target_: src.models.components.loss_fn.BCELossCustom
