@@ -42,10 +42,10 @@ model:
     _target_: src.models.components.cnn.ChessCNN
   compile: False
   loss_fns:
-  - _target_: src.models.components.loss_fn.BCELossCustom
+  - _target_: src.models.components.loss_fn.BCELoss
     tag: original_loss
     weight: 1
-  # - _target_: src.models.components.loss_fn.BCELossCustom
+  # - _target_: src.models.components.loss_fn.BCELoss
   #   tag: bse_loss
   #   weight: 0.6
   # - _target_: src.models.components.loss_fn.MSELoss
