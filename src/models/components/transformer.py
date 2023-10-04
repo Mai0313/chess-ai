@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from lightning import LightningModule
 
 
-class ChessTransformer(nn.Module):
+class ChessTransformer(LightningModule):
     def __init__(self, d_model: int = 512, nhead: int = 8, num_layers: int = 6) -> None:
         super().__init__()
 

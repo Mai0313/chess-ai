@@ -26,7 +26,7 @@ data:
       case_nums: 30
   force_parse_data: False
 model:
-  _target_: src.models.chess_module.ChessModule
+  _target_: src.models.chess_mcts_module.ChessMCTSModule
   optimizer:
     _target_: torch.optim.Adam
     _partial_: true
@@ -39,28 +39,22 @@ model:
     factor: 0.1
     patience: 10
   net:
-    _target_: src.models.components.alpha_net.AlphaGoNet
-    input_channels: 12
-    board_size: 8
-    # - _target_: src.models.components.alpha_zero.Extractor
-    #   inplanes: 12
-    #   outplanes: 10
-    #   blocks: 10
-    # - _target_: src.models.components.alpha_zero.ValueNet
-    #   inplanes: 8
-    #   outplanes: 10
-    # - _target_: src.models.components.alpha_zero.PolicyNet
-    #   inplanes: 8
-    #   outplanes: 10
+    _target_: src.models.components.alpha_zero.AlphaZeroNet
+    input_shape: [12, 8, 8]
+    num_actions: 512
+    num_res_block: 4  # 19 for go.
+    num_filters: 256
+    num_fc_units: 256
+    gomoku: False
   compile: False
   loss_fns:
-  - _target_: src.models.components.loss_fn.MSELossCustom
+  - _target_: src.models.components.loss_fn.MSELoss
     tag: mse_loss
     weight: 0.6
-  - _target_: src.models.components.loss_fn.CrossEntropyLossCustom
+  - _target_: src.models.components.loss_fn.CrossEntropyLoss
     tag: cross_entropy_loss
     weight: 0.2
-  - _target_: src.models.components.loss_fn.HuberLossCustom
+  - _target_: src.models.components.loss_fn.HuberLoss
     tag: huber_loss
     weight: 0.2
   # - _target_: src.models.components.loss_fn.AlphaLoss

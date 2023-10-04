@@ -3,6 +3,7 @@ from typing import NamedTuple, Tuple
 
 import torch
 import torch.nn.functional as F
+from lightning import LightningModule
 from torch import nn
 
 
@@ -75,7 +76,7 @@ class ResNetBlock(nn.Module):
         return out
 
 
-class AlphaZeroNet(nn.Module):
+class AlphaZeroNet(LightningModule):
     """Policy network for AlphaZero agent."""
 
     def __init__(

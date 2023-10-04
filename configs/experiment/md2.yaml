@@ -52,13 +52,13 @@ model:
   - _target_: src.models.components.loss_fn.BCELossCustom
     tag: bse_loss
     weight: 0.6
-  - _target_: src.models.components.loss_fn.MSELossCustom
+  - _target_: src.models.components.loss_fn.MSELoss
     tag: mse_loss
     weight: 0.2
-  - _target_: src.models.components.loss_fn.CrossEntropyLossCustom
+  - _target_: src.models.components.loss_fn.CrossEntropyLoss
     tag: cross_entropy_loss
     weight: 0.1
-  - _target_: src.models.components.loss_fn.HuberLossCustom
+  - _target_: src.models.components.loss_fn.HuberLoss
     tag: huber_loss
     weight: 0.1
 callbacks:
