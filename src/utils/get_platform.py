@@ -9,4 +9,5 @@ def get_platform():
         stockfish_path = "engine/stockfish_win/stockfish-windows-x86-64-avx2.exe"
     return lc0_path, stockfish_path
 
+
 lc0_path, stockfish_path = get_platform()

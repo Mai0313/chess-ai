@@ -6,8 +6,6 @@ from lightning import LightningModule
 from torchmetrics import MaxMetric, MeanMetric
 from torchmetrics.classification.accuracy import Accuracy
 
-from src.models.components.mcts import MCTS, MCTSNode
-
 
 class ChessMCTSModule(LightningModule):
     """Example of a `LightningModule` for MNIST classification.
