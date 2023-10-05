@@ -105,7 +105,8 @@ class ChessModule(LightningModule):
             - A tensor of predictions.
             - A tensor of target labels.
         """
-        x, y = batch
+        # target value is eval score from stockfish
+        x, y, target_value = batch
         prediction = self.forward(x)
 
         losses = {}  # a dict of {loss_fn_name: loss_value}

@@ -123,8 +123,7 @@ class ChessDataModule(LightningDataModule):
                 or not os.path.exists(self.hparams.val_dataset)
                 or not os.path.exists(self.hparams.test_dataset)
             ):
-                ChessDataGenerator().convert_data(self.hparams.dataset.raw_data.data_path)
-                ChessDataGenerator().convert_data_from_realworld(
+                ChessDataGenerator().convert_data(
                     self.hparams.dataset.raw_data.data_path,
                     self.hparams.train_dataset,
                     self.hparams.val_dataset,
@@ -142,18 +141,25 @@ class ChessDataModule(LightningDataModule):
         :param stage: The stage to setup. Either `"fit"`, `"validate"`, `"test"`, or `"predict"`. Defaults to ``None``.
         """
         if not self.data_train and not self.data_val and not self.data_test:
-            train_data, train_labels = ChessDataLoader().load_data(self.hparams.train_dataset)
-            val_data, val_labels = ChessDataLoader().load_data(self.hparams.val_dataset)
-            test_data, test_labels = ChessDataLoader().load_data(self.hparams.test_dataset)
+            train_data, train_labels, train_fens, train_stockfish_evals = ChessDataLoader().load_data(self.hparams.train_dataset)
+            val_data, val_labels, val_fens, val_stockfish_evals = ChessDataLoader().load_data(self.hparams.val_dataset)
+            test_data, test_labels, test_fens, test_stockfish_evals = ChessDataLoader().load_data(self.hparams.test_dataset)
+
             train_data = torch.tensor(train_data).float()
             train_labels = torch.tensor(train_labels).float().view(-1, 1)
+            train_stockfish_evals = torch.tensor(train_stockfish_evals).float().view(-1, 1)
+
             val_data = torch.tensor(val_data).float()
             val_labels = torch.tensor(val_labels).float().view(-1, 1)
+            val_stockfish_evals = torch.tensor(val_stockfish_evals).float().view(-1, 1)
+
             test_data = torch.tensor(test_data).float()
             test_labels = torch.tensor(test_labels).float().view(-1, 1)
-            self.data_train = TensorDataset(train_data, train_labels)
-            self.data_val = TensorDataset(val_data, val_labels)
-            self.data_test = TensorDataset(test_data, test_labels)
+            test_stockfish_evals = torch.tensor(test_stockfish_evals).float().view(-1, 1)
+
+            self.data_train = TensorDataset(train_data, train_labels, train_stockfish_evals)
+            self.data_val = TensorDataset(val_data, val_labels, val_stockfish_evals)
+            self.data_test = TensorDataset(test_data, test_labels, test_stockfish_evals)
 
     def train_dataloader(self) -> DataLoader[Any]:
         """Create and return the train dataloader.
