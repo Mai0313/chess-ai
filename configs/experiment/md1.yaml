@@ -1,5 +1,5 @@
 # @package _global_
-task_name: chess_md1
+task_name: md1_cnn
 run_name: default_run
 tags: ["dev"]
 train: True
@@ -42,9 +42,21 @@ model:
     _target_: src.models.components.cnn.ChessCNN
   compile: False
   loss_fns:
-  - _target_: src.models.components.loss_fn.BCELossCustom
+  - _target_: src.models.components.loss_fn.BCELoss
     tag: original_loss
     weight: 1
+  # - _target_: src.models.components.loss_fn.BCELoss
+  #   tag: bse_loss
+  #   weight: 0.6
+  # - _target_: src.models.components.loss_fn.MSELoss
+  #   tag: mse_loss
+  #   weight: 0.2
+  # - _target_: src.models.components.loss_fn.CrossEntropyLoss
+  #   tag: cross_entropy_loss
+  #   weight: 0.1
+  # - _target_: src.models.components.loss_fn.HuberLoss
+  #   tag: huber_loss
+  #   weight: 0.1
 callbacks:
   model_checkpoint:
     _target_: lightning.pytorch.callbacks.ModelCheckpoint

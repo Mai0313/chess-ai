@@ -1,7 +1,7 @@
 import torch
 
 
-class BCELossCustom:
+class BCELoss:
     def __init__(self, tag, weight):
         self.tag = tag
         self.weight = weight
@@ -12,7 +12,18 @@ class BCELossCustom:
         return loss * self.weight
 
 
-class MSELossCustom:
+class BCEWithLogitsLoss:
+    def __init__(self, tag, weight):
+        self.tag = tag
+        self.weight = weight
+        self.criterion = torch.nn.BCEWithLogitsLoss()
+
+    def __call__(self, prediction, y):
+        loss = self.criterion(prediction, y)
+        return loss * self.weight
+
+
+class MSELoss:
     def __init__(self, tag, weight):
         self.tag = tag
         self.weight = weight
@@ -23,7 +34,7 @@ class MSELossCustom:
         return loss * self.weight
 
 
-class CrossEntropyLossCustom:
+class CrossEntropyLoss:
     def __init__(self, tag, weight):
         self.tag = tag
         self.weight = weight
@@ -34,7 +45,7 @@ class CrossEntropyLossCustom:
         return loss * self.weight
 
 
-class HuberLossCustom:
+class HuberLoss:
     def __init__(self, tag, weight, delta=1.0):
         self.tag = tag
         self.weight = weight

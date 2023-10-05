@@ -1,5 +1,5 @@
 # @package _global_
-task_name: chess_md2
+task_name: md2_transformer
 run_name: default_run
 tags: ["dev"]
 train: True
@@ -39,28 +39,17 @@ model:
     factor: 0.1
     patience: 10
   net:
-    _target_: src.models.components.cnn.ChessCNN
-    # in_channels: 1
-    # kernel_size: 3
-    # stride: 1
-    # padding: 1
-    # num_classes: 36
-    # num_chars: 5
-    # hidden_size: 256
+    _target_: src.models.components.transformer.ChessTransformer
+    num_actions: 1
+    action_type: random
+    d_model: 512
+    nhead: 8
+    num_layers: 6
   compile: False
   loss_fns:
-  - _target_: src.models.components.loss_fn.BCELossCustom
+  - _target_: src.models.components.loss_fn.BCEWithLogitsLoss
     tag: bse_loss
-    weight: 0.6
-  - _target_: src.models.components.loss_fn.MSELossCustom
-    tag: mse_loss
-    weight: 0.2
-  - _target_: src.models.components.loss_fn.CrossEntropyLossCustom
-    tag: cross_entropy_loss
-    weight: 0.1
-  - _target_: src.models.components.loss_fn.HuberLossCustom
-    tag: huber_loss
-    weight: 0.1
+    weight: 1
 callbacks:
   model_checkpoint:
     _target_: lightning.pytorch.callbacks.ModelCheckpoint

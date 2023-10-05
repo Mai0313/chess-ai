@@ -155,4 +155,6 @@ configs/local/default.yaml
 code
 code.exe
 /data
+engine
 stockfish*
+lc0*

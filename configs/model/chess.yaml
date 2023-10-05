@@ -20,6 +20,6 @@ net:
 compile: false
 
 loss_fns:
-- _target_: src.models.components.loss_fn.MSELossCustom
+- _target_: src.models.components.loss_fn.MSELoss
   tag: mse_loss
   weight: 1

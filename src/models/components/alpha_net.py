@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
+from lightning import LightningModule
 
 
-class AlphaGoNet(nn.Module):
+class AlphaGoNet(LightningModule):
     def __init__(self, input_channels, board_size):
         super().__init__()
 
