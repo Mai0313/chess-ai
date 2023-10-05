@@ -8,8 +8,6 @@ import IPython.display as display
 import numpy as np
 import torch
 
-from src.models.components.mcts import MCTSNode, monte_carlo_tree_search
-
 
 class ChessData:
     def __init__(self):
@@ -91,16 +89,6 @@ class ChessMove:
                 best_value = value
                 best_move = move
         return best_move
-
-
-class ChessMoveMCTS:
-    def __init__(self):
-        pass
-
-    def move(self, model, board, gpu: bool):
-        root = MCTSNode(board)
-        monte_carlo_tree_search(root, model, 100, gpu)
-        return root.best_child().move
 
 
 class ChessGame:
