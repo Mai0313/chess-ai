@@ -1,111 +1,116 @@
+import random
+
 import chess
-import numpy as np
-import torch
-
-
-def array_to_board(board_array):
-    piece_symbols = {
-        0: "p",
-        1: "n",
-        2: "b",
-        3: "r",
-        4: "q",
-        5: "k",
-        6: "P",
-        7: "N",
-        8: "B",
-        9: "R",
-        10: "Q",
-        11: "K",
-    }
-
-    board = chess.Board()
-    board.clear_board()
-
-    for rank in range(8):
-        for file in range(8):
-            for idx, symbol in piece_symbols.items():
-                if board_array[7 - rank, file, idx].item() == 1.0:
-                    board.set_piece_at(rank * 8 + file, chess.Piece.from_symbol(symbol))
-    return board
+import chess.svg
+import torch.nn.functional as F
 
 
 class MCTSNode:
-    def __init__(self, state, parent=None):
-        self.state = state
+    def __init__(self, game: chess.Board, move=None, parent=None):
+        self.game = game
+        self.move = move
         self.parent = parent
         self.children = []
+        self.wins = 0
         self.visits = 0
-        self.value_sum = 0
-        self.values = []
-        self.is_expanded = False
 
-    @property
-    def is_terminal(self):
-        board = array_to_board(self.state[0].cpu().numpy())
-        return board.is_game_over()
-
-    @property
-    def value(self):
+    def uct_value(self, total_simulations, bias=1.41):
         if self.visits == 0:
-            return 0
-        return self.value_sum / self.visits
+            return float("inf")
+        win_ratio = self.wins / self.visits
+        exploration = bias * ((total_simulations) ** 0.5 / (1 + self.visits))
+        return win_ratio + exploration
 
-    def expand(self, child_states):
-        self.is_expanded = True
-        for state in child_states:
-            self.children.append(MCTSNode(state, parent=self))
+    def best_child(self):
+        total_simulations = sum([child.visits for child in self.children])
+        return max(self.children, key=lambda child: child.uct_value(total_simulations))
 
-    def best_child(self, c):
-        uct_values = [
-            (child.value / (child.visits + 1e-10))
-            + c * np.sqrt(np.log(self.visits + 1) / (child.visits + 1e-10))
-            for child in self.children
-        ]
-        return self.children[np.argmax(uct_values)]
+    def rollout(self, model):
+        pi_logits, value = model(self.game.board_representation())
+        return value.item()
+
+    def backpropagate(self, result):
+        self.visits += 1
+        self.wins += result
+        if self.parent:
+            self.parent.backpropagate(-result)
+
+    def expand(self, model):
+        pi_logits, _ = model(self.game.board_representation())
+        pi = F.softmax(pi_logits, dim=0)
+        all_possible_moves = [move.uci() for move in chess.Board().legal_moves]
+        move_to_index = {move: index for index, move in enumerate(all_possible_moves)}
+
+        for move in self.game.legal_moves:
+            move_uci = move.uci()
+            if move_uci in move_to_index:
+                move_index = move_to_index[move_uci]
+                new_state = self.game.copy()
+                new_state.push(move)
+                move_prob = pi[move_index].item()
+                new_node = MCTSNode(new_state, move_prob, move=move, parent=self)
+                self.children.append(new_node)
 
 
-def MCTS(root, model, num_simulations, c=1):
-    for _ in range(num_simulations):
-        leaf = traverse(root)
-        simulation_result = rollout(leaf, model)
-        backpropagate(leaf, simulation_result)
+class MCTSNodeSelfPlay:
+    def __init__(self, game: chess.Board, move=None, parent=None):
+        self.game = game
+        self.move = move
+        self.parent = parent
+        self.children = []
+        self.wins = 0
+        self.visits = 0
 
-    return max(root.children, key=lambda node: node.visits).state
+    def uct_value(self, total_simulations, bias=1.41):
+        if self.visits == 0:
+            return float("inf")
+        win_ratio = self.wins / self.visits
+        exploration = bias * ((total_simulations) ** 0.5 / (1 + self.visits))
+        return win_ratio + exploration
+
+    def best_child(self):
+        total_simulations = sum([child.visits for child in self.children])
+        return max(self.children, key=lambda child: child.uct_value(total_simulations))
+
+    def rollout(self):
+        current_rollout_state = self.game
+        while not current_rollout_state.is_game_over():
+            possible_moves = list(current_rollout_state.legal_moves)
+            action = random.choice(possible_moves)
+            current_rollout_state.push(action)
+        result = current_rollout_state.result()
+        if result == "1-0":
+            return 1
+        elif result == "0-1":
+            return -1
+        return 0
+
+    def backpropagate(self, result):
+        self.visits += 1
+        self.wins += result
+        if self.parent:
+            self.parent.backpropagate(-result)
+
+    def expand(self):
+        for move in self.game.legal_moves:
+            new_state = self.game.copy()
+            new_state.push(move)
+            new_node = MCTSNodeSelfPlay(new_state, move=move, parent=self)
+            self.children.append(new_node)
 
 
-def traverse(node):
-    while node.is_expanded:
-        node = node.best_child(c=1)
+def monte_carlo_tree_search(root, simulations):
+    for _ in range(simulations):
+        v = tree_policy(root)
+        reward = v.rollout()
+        v.backpropagate(reward)
+    return root.best_child().move
+
+
+def tree_policy(node):
+    while not node.game.is_game_over():
+        if len(node.children) == 0:
+            node.expand()
+            return random.choice(node.children)
+        node = node.best_child()
     return node
-
-
-def rollout(node, model):
-    pi_logits, value = model(torch.tensor(node.state).float())
-    probs = torch.nn.functional.softmax(pi_logits, dim=-1).cpu().numpy()
-
-    if node.is_terminal:
-        return -node.value
-
-    valid_actions = list(node.state.legal_moves)
-
-    # 確保 probs 只涵蓋 valid_actions
-    probs = probs[np.array([action.uci() for action in valid_actions])]
-    probs /= probs.sum()
-
-    chosen_action = np.random.choice(valid_actions, p=probs)
-
-    new_state = node.state.copy()
-    new_state.push(chosen_action)
-
-    child_states = [new_state]
-    node.expand(child_states)
-
-    return value.item()
-
-
-def backpropagate(node, value):
-    while node is not None:
-        node.visits += 1
-        node.value_sum += value
-        node = node.parent
