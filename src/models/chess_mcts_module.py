@@ -108,29 +108,14 @@ class ChessMCTSModule(LightningModule):
             - A tensor of predictions.
             - A tensor of target labels.
         """
-        x, y = batch
-        policy_logits, predicted_value = self.forward(x)
+        state, target_policy, target_value = batch
+        pi_logits, value = self.forward(state)
 
-        # Using MCTS to generate a policy vector based on model's policy output
-        # Here, we assume your MCTS function returns a policy vector (proportional to visit counts of each action)
-        mcts_policy_vector = MCTS(MCTSNode(x), self.net, num_simulations=1000)
-
-        # Convert MCTS result to tensor and move to the same device as policy_logits
-        mcts_policy_tensor = torch.tensor(
-            mcts_policy_vector, dtype=torch.float32, device=policy_logits.device
-        )
-
-        # Now, compute the policy loss between the mcts_policy_tensor and the model's policy output
-        policy_loss = F.cross_entropy(policy_logits, mcts_policy_tensor)
-
-        # Compute the value loss between the predicted_value and the actual game result (from y, for example)
-        value_loss = F.mse_loss(predicted_value, y)
-
+        policy_loss = F.cross_entropy(pi_logits, target_policy)
+        value_loss = F.mse_loss(value, target_value)
         total_loss = policy_loss + value_loss
-
-        # Record the losses
         losses = {"policy_loss": policy_loss, "value_loss": value_loss, "total_loss": total_loss}
-        return losses, policy_logits, predicted_value
+        return losses, pi_logits, value
 
     def training_step(
         self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int
@@ -142,7 +127,7 @@ class ChessMCTSModule(LightningModule):
         :param batch_idx: The index of the current batch.
         :return: A tensor of losses between model predictions and targets.
         """
-        losses, policy_logits, predicted_value = self.model_step(batch)
+        losses, pi_logits, value = self.model_step(batch)
 
         self.train_loss(losses.get("total_loss"))
         for loss_name, loss_value in losses.items():
@@ -160,7 +145,7 @@ class ChessMCTSModule(LightningModule):
             labels.
         :param batch_idx: The index of the current batch.
         """
-        losses, policy_logits, predicted_value = self.model_step(batch)
+        losses, pi_logits, value = self.model_step(batch)
 
         # update and log metrics
         self.val_loss(losses.get("total_loss"))
@@ -182,7 +167,7 @@ class ChessMCTSModule(LightningModule):
             labels.
         :param batch_idx: The index of the current batch.
         """
-        losses, policy_logits, predicted_value = self.model_step(batch)
+        losses, pi_logits, value = self.model_step(batch)
 
         # update and log metrics
         self.test_loss(losses.get("total_loss"))
