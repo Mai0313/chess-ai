@@ -26,7 +26,7 @@ data:
       case_nums: 30
   force_parse_data: False
 model:
-  _target_: src.models.chess_mcts_module.ChessMCTSModule
+  _target_: src.models.chess_module.ChessModule
   optimizer:
     _target_: torch.optim.Adam
     _partial_: true
@@ -51,12 +51,12 @@ model:
   - _target_: src.models.components.loss_fn.MSELoss
     tag: mse_loss
     weight: 0.6
-  - _target_: src.models.components.loss_fn.CrossEntropyLoss
-    tag: cross_entropy_loss
-    weight: 0.2
-  - _target_: src.models.components.loss_fn.HuberLoss
-    tag: huber_loss
-    weight: 0.2
+  # - _target_: src.models.components.loss_fn.CrossEntropyLoss
+  #   tag: cross_entropy_loss
+  #   weight: 0.2
+  # - _target_: src.models.components.loss_fn.HuberLoss
+  #   tag: huber_loss
+  #   weight: 0.2
   # - _target_: src.models.components.loss_fn.AlphaLoss
   #   tag: alpha_loss
   #   weight: 1

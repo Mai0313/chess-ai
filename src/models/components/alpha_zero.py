@@ -164,4 +164,4 @@ class AlphaZeroNet(LightningModule):
         # Predict evaluated value from current player's perspective.
         value = self.value_head(features)
 
-        return pi_logits, value
+        return pi_logits  #, value
