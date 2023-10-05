@@ -98,6 +98,13 @@ class ChessDataModule(LightningDataModule):
         self.batch_size_per_device = batch_size
 
     def prepare_data(self) -> None:
+        """Download data if needed. Lightning ensures that `self.prepare_data()` is called only
+        within a single process on CPU, so you can safely add your downloading logic within. In
+        case of multi-node training, the execution of this hook depends upon
+        `self.prepare_data_per_node()`.
+
+        Do not use it to assign state (self.x = y).
+        """
         self.hparams.train_dataset = self.hparams.dataset.train.data_path
         self.hparams.val_dataset = self.hparams.dataset.validation.data_path
         self.hparams.test_dataset = self.hparams.dataset.test.data_path
@@ -117,8 +124,7 @@ class ChessDataModule(LightningDataModule):
                 or not os.path.exists(self.hparams.val_dataset)
                 or not os.path.exists(self.hparams.test_dataset)
             ):
-                ChessDataGenerator().convert_data(self.hparams.dataset.raw_data.data_path)
-                ChessDataGenerator().convert_data_from_realworld(
+                ChessDataGenerator().convert_data(
                     self.hparams.dataset.raw_data.data_path,
                     self.hparams.train_dataset,
                     self.hparams.val_dataset,
@@ -126,15 +132,35 @@ class ChessDataModule(LightningDataModule):
                 ChessDataGenerator().generate_data(30, self.hparams.test_dataset)
 
     def setup(self, stage: Optional[str] = None) -> None:
-        mcts_model = MCTSModel()
-        states, fen_states, policies, values = mcts_model.self_play()
+        """Load data. Set variables: `self.data_train`, `self.data_val`, `self.data_test`.
 
-        states = torch.tensor(states).float()
-        policies = torch.tensor(policies).float()
-        values = torch.tensor(values).float().view(-1, 1)
-        self.data_train = TensorDataset(states, policies, values)
-        self.data_val = TensorDataset(states, policies, values)
-        self.data_test = TensorDataset(states, policies, values)
+        This method is called by Lightning before `trainer.fit()`, `trainer.validate()`, `trainer.test()`, and
+        `trainer.predict()`, so be careful not to execute things like random split twice! Also, it is called after
+        `self.prepare_data()` and there is a barrier in between which ensures that all the processes proceed to
+        `self.setup()` once the data is prepared and available for use.
+
+        :param stage: The stage to setup. Either `"fit"`, `"validate"`, `"test"`, or `"predict"`. Defaults to ``None``.
+        """
+        if not self.data_train and not self.data_val and not self.data_test:
+            train_data, train_labels, train_fens, train_stockfish_evals = ChessDataLoader().load_data(self.hparams.train_dataset)
+            val_data, val_labels, val_fens, val_stockfish_evals = ChessDataLoader().load_data(self.hparams.val_dataset)
+            test_data, test_labels, test_fens, test_stockfish_evals = ChessDataLoader().load_data(self.hparams.test_dataset)
+
+            train_data = torch.tensor(train_data).float()
+            train_labels = torch.tensor(train_labels).float().view(-1, 1)
+            train_stockfish_evals = torch.tensor(train_stockfish_evals).float().view(-1, 1)
+
+            val_data = torch.tensor(val_data).float()
+            val_labels = torch.tensor(val_labels).float().view(-1, 1)
+            val_stockfish_evals = torch.tensor(val_stockfish_evals).float().view(-1, 1)
+
+            test_data = torch.tensor(test_data).float()
+            test_labels = torch.tensor(test_labels).float().view(-1, 1)
+            test_stockfish_evals = torch.tensor(test_stockfish_evals).float().view(-1, 1)
+
+            self.data_train = TensorDataset(train_data, train_labels, train_stockfish_evals)
+            self.data_val = TensorDataset(val_data, val_labels, val_stockfish_evals)
+            self.data_test = TensorDataset(test_data, test_labels, test_stockfish_evals)
 
     def train_dataloader(self) -> DataLoader[Any]:
         """Create and return the train dataloader.
