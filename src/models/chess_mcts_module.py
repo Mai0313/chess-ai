@@ -106,6 +106,7 @@ class ChessMCTSModule(LightningModule):
             - A tensor of predictions.
             - A tensor of target labels.
         """
+        # target value is eval score from stockfish
         state, target_policy, target_value = batch
         pi_logits, value = self.forward(state)
 
