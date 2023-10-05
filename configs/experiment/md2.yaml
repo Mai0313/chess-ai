@@ -7,7 +7,7 @@ test: True
 ckpt_path: null
 seed: null
 data:
-  _target_: src.data.chess_mcts_datamodule.ChessDataModule
+  _target_: src.data.chess_datamodule.ChessDataModule
   batch_size: 64
   num_workers: 0
   pin_memory: False
@@ -26,7 +26,7 @@ data:
       case_nums: 30
   force_parse_data: False
 model:
-  _target_: src.models.chess_mcts_module.ChessModule
+  _target_: src.models.chess_module.ChessModule
   optimizer:
     _target_: torch.optim.Adam
     _partial_: true
