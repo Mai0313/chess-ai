@@ -25,7 +25,12 @@ class ChessDataLoader:
     # Function to load data
     def load_data(self, file_name):
         loaded_data = np.load(file_name)
-        return loaded_data["data"], loaded_data["labels"], loaded_data["fens"], loaded_data["stockfish_evals"]
+        return (
+            loaded_data["data"],
+            loaded_data["labels"],
+            loaded_data["fens"],
+            loaded_data["stockfish_evals"],
+        )
 
     def merge_saved_data(self, output_filename):
         folder_path = "./data/temp"
@@ -89,7 +94,9 @@ class ChessDataGenerator:
                                 board_array = ChessConverter().convert_array(board)
                                 fen = board.fen()
                                 stockfish_eval = self.get_stockfish_evaluation(fen)
-                                label = 1.0 if board.turn == chess.WHITE else 0.0  # 1 for white's turn, 0 for black
+                                label = (
+                                    1.0 if board.turn == chess.WHITE else 0.0
+                                )  # 1 for white's turn, 0 for black
                                 data.append(board_array)
                                 labels.append(label)
                                 fens.append(fen)
@@ -114,10 +121,21 @@ class ChessDataGenerator:
         all_fens = np.array(all_fens)
         all_stockfish_evals = np.array(all_stockfish_evals)
         all_data = np.transpose(all_data, (0, 3, 1, 2))
-        X_train, X_val, y_train, y_val, fens_train, fens_val, stockfish_evals_train, stockfish_evals_val = train_test_split(
+        (
+            X_train,
+            X_val,
+            y_train,
+            y_val,
+            fens_train,
+            fens_val,
+            stockfish_evals_train,
+            stockfish_evals_val,
+        ) = train_test_split(
             all_data, all_labels, all_fens, all_stockfish_evals, test_size=0.2, random_state=42
         )
-        ChessDataLoader().save_data(X_train, y_train, fens_train, stockfish_evals_train, train_cases_path)
+        ChessDataLoader().save_data(
+            X_train, y_train, fens_train, stockfish_evals_train, train_cases_path
+        )
         ChessDataLoader().save_data(X_val, y_val, fens_val, stockfish_evals_val, val_cases_path)
         return X_train, X_val, y_train, y_val
 
@@ -157,7 +175,9 @@ class ChessDataGenerator:
                     data_array = np.transpose(data_array, (0, 3, 1, 2))
 
                     file_name = f"{folder_path}/generated_cases_{i}.npz"
-                    ChessDataLoader().save_data(data_array, labels_array, fens, stockfish_evals, file_name)
+                    ChessDataLoader().save_data(
+                        data_array, labels_array, fens, stockfish_evals, file_name
+                    )
 
                     data = []
                     labels = []

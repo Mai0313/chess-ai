@@ -142,9 +142,18 @@ class ChessDataModule(LightningDataModule):
         :param stage: The stage to setup. Either `"fit"`, `"validate"`, `"test"`, or `"predict"`. Defaults to ``None``.
         """
         if not self.data_train and not self.data_val and not self.data_test:
-            train_data, train_labels, train_fens, train_stockfish_evals = ChessDataLoader().load_data(self.hparams.train_dataset)
-            val_data, val_labels, val_fens, val_stockfish_evals = ChessDataLoader().load_data(self.hparams.val_dataset)
-            test_data, test_labels, test_fens, test_stockfish_evals = ChessDataLoader().load_data(self.hparams.test_dataset)
+            (
+                train_data,
+                train_labels,
+                train_fens,
+                train_stockfish_evals,
+            ) = ChessDataLoader().load_data(self.hparams.train_dataset)
+            val_data, val_labels, val_fens, val_stockfish_evals = ChessDataLoader().load_data(
+                self.hparams.val_dataset
+            )
+            test_data, test_labels, test_fens, test_stockfish_evals = ChessDataLoader().load_data(
+                self.hparams.test_dataset
+            )
 
             train_data = torch.tensor(train_data).float()
             train_labels = torch.tensor(train_labels).float().view(-1, 1)

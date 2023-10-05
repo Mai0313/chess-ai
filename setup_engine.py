@@ -23,6 +23,7 @@ def execute_command(command, error_message):
 
 def download_with_progress(url, filename):
     task_id = progress.add_task("[cyan]Downloading...", total=100)
+
     def progress_update(count, block_size, total_size):
         percent_complete = (count * block_size * 100) / total_size
         progress.update(task_id, completed=percent_complete)
