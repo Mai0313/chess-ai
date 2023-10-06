@@ -94,9 +94,7 @@ class ChessMCTSModule(LightningModule):
         self.val_acc.reset()
         self.val_acc_best.reset()
 
-    def model_step(
-        self, batch: Tuple[torch.Tensor, torch.Tensor]
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def model_step(self, batch: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Perform a single model step on a batch of data.
 
         :param batch: A batch of data (a tuple) containing the input tensor of images and target labels.
@@ -116,9 +114,7 @@ class ChessMCTSModule(LightningModule):
         losses = {"policy_loss": policy_loss, "value_loss": value_loss, "total_loss": total_loss}
         return losses, pi_logits, value
 
-    def training_step(
-        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int
-    ) -> torch.Tensor:
+    def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int) -> torch.Tensor:
         """Perform a single training step on a batch of data from the training set.
 
         :param batch: A batch of data (a tuple) containing the input tensor of images and target

@@ -87,9 +87,7 @@ class ChessDataModule(LightningDataModule):
         self.save_hyperparameters(logger=False)
 
         # data transformations
-        self.transforms = transforms.Compose(
-            [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
-        )
+        self.transforms = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
 
         self.data_train: Optional[Dataset] = None
         self.data_val: Optional[Dataset] = None
@@ -109,15 +107,9 @@ class ChessDataModule(LightningDataModule):
         self.hparams.val_dataset = self.hparams.dataset.validation.data_path
         self.hparams.test_dataset = self.hparams.dataset.test.data_path
         if self.hparams.gen_data:
-            ChessDataGenerator().generate_data(
-                self.hparams.dataset.train.case_nums, self.hparams.train_dataset
-            )
-            ChessDataGenerator().generate_data(
-                self.hparams.dataset.validation.case_nums, self.hparams.val_dataset
-            )
-            ChessDataGenerator().generate_data(
-                self.hparams.dataset.test.case_nums, self.hparams.test_dataset
-            )
+            ChessDataGenerator().generate_data(self.hparams.dataset.train.case_nums, self.hparams.train_dataset)
+            ChessDataGenerator().generate_data(self.hparams.dataset.validation.case_nums, self.hparams.val_dataset)
+            ChessDataGenerator().generate_data(self.hparams.dataset.test.case_nums, self.hparams.test_dataset)
         else:
             if (
                 not os.path.exists(self.hparams.train_dataset)
@@ -148,9 +140,7 @@ class ChessDataModule(LightningDataModule):
                 train_fens,
                 train_stockfish_evals,
             ) = ChessDataLoader().load_data(self.hparams.train_dataset)
-            val_data, val_labels, val_fens, val_stockfish_evals = ChessDataLoader().load_data(
-                self.hparams.val_dataset
-            )
+            val_data, val_labels, val_fens, val_stockfish_evals = ChessDataLoader().load_data(self.hparams.val_dataset)
             test_data, test_labels, test_fens, test_stockfish_evals = ChessDataLoader().load_data(
                 self.hparams.test_dataset
             )
