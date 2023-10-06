@@ -1,5 +1,7 @@
 #!/bin/bash
 
+pip install -r requirements.txt
+
 mkdir engine
 cd engine
 
@@ -23,14 +25,16 @@ git clone https://github.com/LeelaChessZero/lc0.git lc0_src
 chmod +x ./lc0_src/build.sh
 ./lc0_src/build.sh
 mv ./lc0_src/build/release lc0
-rm -rf lc0_src
 
+get_models() {
+    target=$1
+    filename=$(basename $target)
+    wget $target
+    gunzip $filename
+}
 # Share
 mkdir lc0_model
-wget https://storage.lczero.org/files/networks-contrib/t2-768x15x24h-swa-5230000.pb.gz
-gunzip t2-768x15x24h-swa-5230000.pb.gz
-wget https://storage.lczero.org/files/networks-contrib/t1-512x15x8h-distilled-swa-3395000.pb.gz
-gunzip t1-512x15x8h-distilled-swa-3395000.pb.gz
-wget https://storage.lczero.org/files/networks-contrib/t1-256x10-distilled-swa-2432500.pb.gz
-gunzip t1-256x10-distilled-swa-2432500.pb.gz
+get_models https://storage.lczero.org/files/networks-contrib/t2-768x15x24h-swa-5230000.pb.gz
+get_models https://storage.lczero.org/files/networks-contrib/t1-512x15x8h-distilled-swa-3395000.pb.gz
+get_models https://storage.lczero.org/files/networks-contrib/t1-256x10-distilled-swa-2432500.pb.gz
 mv *.pb lc0_model
