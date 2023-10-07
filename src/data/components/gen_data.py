@@ -57,7 +57,23 @@ class ChessDataLoader:
 
 class ChessDataGenerator:
     def __init__(self):
-        self.stockfish = Stockfish(path="engine/stockfish/stockfish-ubuntu-x86-64-avx2")
+        stockfish_params = {
+            "Debug Log File": "",
+            "Contempt": 0,
+            "Min Split Depth": 0,
+            "Threads": 8,
+            "Ponder": "false",
+            "Hash": 16,
+            "MultiPV": 1,
+            "Skill Level": 20,
+            "Move Overhead": 10,
+            "Minimum Thinking Time": 10,
+            "Slow Mover": 100,
+            "UCI_Chess960": "false",
+            "UCI_LimitStrength": "false",
+            "UCI_Elo": 3500,
+        }
+        self.stockfish = Stockfish(path="engine/stockfish_win/stockfish-windows-x86-64-avx2.exe", parameters=stockfish_params)
 
     def get_stockfish_evaluation(self, fen):
         self.stockfish.set_fen_position(fen)
@@ -184,4 +200,4 @@ if __name__ == "__main__":
     val_cases_path = "./data/val_cases.npz"
     # ChessDataGenerator().convert_data(input_path, train_cases_path, val_cases_path)
     # ChessDataGenerator().convert_data_from_realworld(input_path, train_cases_path, val_cases_path)
-    ChessDataGenerator().generate_data(30, "./data/test_cases.npz")
+    ChessDataGenerator().generate_data(1000, "./data/train_1000_gen_cases.npz")
