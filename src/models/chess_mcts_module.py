@@ -8,38 +8,6 @@ from torchmetrics.classification.accuracy import Accuracy
 
 
 class ChessMCTSModule(LightningModule):
-    """Example of a `LightningModule` for MNIST classification.
-
-    A `LightningModule` implements 8 key methods:
-
-    ```python
-    def __init__(self):
-    # Define initialization code here.
-
-    def setup(self, stage):
-    # Things to setup before each stage, 'fit', 'validate', 'test', 'predict'.
-    # This hook is called on every process when using DDP.
-
-    def training_step(self, batch, batch_idx):
-    # The complete training step.
-
-    def validation_step(self, batch, batch_idx):
-    # The complete validation step.
-
-    def test_step(self, batch, batch_idx):
-    # The complete test step.
-
-    def predict_step(self, batch, batch_idx):
-    # The complete predict step.
-
-    def configure_optimizers(self):
-    # Define and configure optimizers and LR schedulers.
-    ```
-
-    Docs:
-        https://lightning.ai/docs/pytorch/latest/common/lightning_module.html
-    """
-
     def __init__(
         self,
         net: torch.nn.Module,
@@ -107,10 +75,14 @@ class ChessMCTSModule(LightningModule):
         # target value is eval score from stockfish
         state, target_policy, target_value = batch
         pi_logits, value = self.forward(state)
-        policy_loss = F.cross_entropy(pi_logits, target_policy)
-        value_loss = F.mse_loss(value, target_value)
-        total_loss = policy_loss + value_loss
-        losses = {"policy_loss": policy_loss, "value_loss": value_loss, "total_loss": total_loss}
+        losses = {}  # a dict of {loss_fn_name: loss_value}
+        losses["total_loss"] = 0.0
+        for loss_fn in self.loss_fns:
+            if loss_fn.tag == "value_loss":
+                losses[loss_fn.tag] = loss_fn(value, target_value)
+            else:
+                losses[loss_fn.tag] = loss_fn(pi_logits, target_policy)
+            losses["total_loss"] += losses[loss_fn.tag] * loss_fn.weight
         return losses, pi_logits, value
 
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int) -> torch.Tensor:
