@@ -1,4 +1,6 @@
 import numpy as np
+import torch
+from torch.utils.data import TensorDataset
 
 import chess
 
@@ -30,3 +32,10 @@ class ChessConverter:
                 rank, file = divmod(square, 8)
                 board_array[7 - rank, file, piece_idx[piece.symbol()]] = 1.0
         return board_array
+
+    def get_tensor_data(self, data, labels, stockfish_evals):
+        data = torch.tensor(data).float()
+        labels = torch.tensor(labels).float().view(-1, 1)
+        stockfish_evals = torch.tensor(stockfish_evals).float().view(-1, 1)
+        tensor_data = TensorDataset(data, labels, stockfish_evals)
+        return tensor_data
