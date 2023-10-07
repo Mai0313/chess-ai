@@ -107,7 +107,6 @@ class ChessMCTSModule(LightningModule):
         # target value is eval score from stockfish
         state, target_policy, target_value = batch
         pi_logits, value = self.forward(state)
-
         policy_loss = F.cross_entropy(pi_logits, target_policy)
         value_loss = F.mse_loss(value, target_value)
         total_loss = policy_loss + value_loss

@@ -41,7 +41,7 @@ model:
   net:
     _target_: src.models.components.alpha_zero.AlphaZeroNet
     input_shape: [12, 8, 8]
-    num_actions: 512
+    num_actions: 1
     num_res_block: 4  # 19 for go.
     num_filters: 256
     num_fc_units: 256
