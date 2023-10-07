@@ -68,6 +68,7 @@ class AlphaLoss(torch.nn.Module):
 
     The loss is then averaged over the entire batch
     """
+
     def __init__(self, tag, weight):
         self.tag = tag
         self.weight = weight
