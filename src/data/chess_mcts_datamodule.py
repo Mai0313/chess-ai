@@ -11,6 +11,7 @@ from src.data.components.convert import ChessConverter
 class ChessMCTSDataModule(LightningDataModule):
     def __init__(
         self,
+        data_dir: str = "data/",
         dataset: list = None,
         batch_size: int = 64,
         num_workers: int = 0,
