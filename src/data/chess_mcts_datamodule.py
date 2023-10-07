@@ -12,7 +12,7 @@ from src.data.components.gen_data import ChessDataLoader, ChessDataGenerator
 from src.models.components.mcts import MCTSModel
 
 
-class ChessDataModule(LightningDataModule):
+class ChessMCTSDataModule(LightningDataModule):
     """`LightningDataModule` for the MNIST dataset.
 
     The MNIST database of handwritten digits has a training set of 60,000 examples, and a test set of 10,000 examples.
@@ -226,4 +226,4 @@ class ChessDataModule(LightningDataModule):
 
 
 if __name__ == "__main__":
-    _ = ChessDataModule()
+    _ = ChessMCTSDataModule()
