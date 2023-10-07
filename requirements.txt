@@ -44,3 +44,4 @@ ipywidgets
 # Chess Packages
 chess
 meson
+stockfish

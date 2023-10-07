@@ -1,12 +1,13 @@
 import os
 import shutil
-import numpy as np
+
+import autorootcwd
 import chess
 import chess.pgn
+import numpy as np
+import rootutils
 from rich.progress import Progress
 from sklearn.model_selection import train_test_split
-import rootutils
-import autorootcwd
 from stockfish import Stockfish
 
 rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
@@ -64,7 +65,7 @@ class ChessDataGenerator:
             "Threads": 8,
             "Ponder": "false",
             "Hash": 16,
-            "MultiPV": 1,
+            "MultiPV": 512,
             "Skill Level": 20,
             "Move Overhead": 10,
             "Minimum Thinking Time": 10,
@@ -73,9 +74,7 @@ class ChessDataGenerator:
             "UCI_LimitStrength": "false",
             "UCI_Elo": 3500,
         }
-        self.stockfish = Stockfish(
-            path="engine/stockfish/stockfish-ubuntu-x86-64-avx2", parameters=stockfish_params
-        )
+        self.stockfish = Stockfish(path="engine/stockfish/stockfish-ubuntu-x86-64-avx2", parameters=stockfish_params)
 
     def get_stockfish_evaluation(self, fen):
         self.stockfish.set_fen_position(fen)
@@ -202,4 +201,4 @@ if __name__ == "__main__":
     val_cases_path = "./data/val_cases.npz"
     # ChessDataGenerator().convert_data(input_path, train_cases_path, val_cases_path)
     # ChessDataGenerator().convert_data_from_realworld(input_path, train_cases_path, val_cases_path)
-    ChessDataGenerator().generate_data(1000, "./data/train_1000_gen_cases.npz")
+    ChessDataGenerator().generate_data(500, "./data/train_1000_gen_cases.npz")

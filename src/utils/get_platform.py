@@ -6,7 +6,7 @@ def get_platform():
     stockfish_path = "engine/stockfish/stockfish-ubuntu-x86-64-avx2"
     if platform.system() == "Windows":
         lc0_path = "engine/lc0/lc0.exe"
-        stockfish_path = "engine/stockfish_win/stockfish-windows-x86-64-avx2.exe"
+        stockfish_path = "engine/stockfish/stockfish-ubuntu-x86-64-avx2"
     return lc0_path, stockfish_path
 
 
