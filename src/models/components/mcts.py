@@ -4,6 +4,7 @@ import random
 import chess
 import chess.svg
 import numpy as np
+import torch
 import torch.nn.functional as F
 
 from src.data.components.convert import ChessConverter
@@ -35,7 +36,11 @@ class MCTSNode:
 
     def rollout(self):
         if self.model:
-            pi_logits, value = self.model(self.game.board_representation())
+            board_representation = self.converter.convert_array(self.game)
+            tensor_input = torch.from_numpy(board_representation).unsqueeze(0).float().permute(0, 3, 1, 2)
+            if next(self.model.parameters()).is_cuda:
+                tensor_input = tensor_input.cuda()
+            pi_logits, value = self.model(tensor_input)
             return value.item()
         else:
             current_rollout_state = self.game
@@ -58,7 +63,11 @@ class MCTSNode:
 
     def expand(self):
         if self.model:
-            pi_logits, _ = self.model(self.game.board_representation())
+            board_representation = self.converter.convert_array(self.game)
+            tensor_input = torch.from_numpy(board_representation).unsqueeze(0).float().permute(0, 3, 1, 2)
+            if next(self.model.parameters()).is_cuda:
+                tensor_input = tensor_input.cuda()
+            pi_logits, _ = self.model(tensor_input)
             pi = F.softmax(pi_logits, dim=0)
             all_possible_moves = [move.uci() for move in self.game.legal_moves]
             self.move_to_index = {move: index for index, move in enumerate(all_possible_moves)}
@@ -69,8 +78,8 @@ class MCTSNode:
                     move_index = self.move_to_index[move_uci]
                     new_state = self.game.copy()
                     new_state.push(move)
-                    move_prob = pi[move_index].item()
-                    new_node = MCTSNode(new_state, move_prob, move=move, parent=self)
+                    # move_prob = pi[move_index].item()
+                    new_node = MCTSNode(game=new_state, move=move, parent=self, model=self.model)
                     self.children.append(new_node)
         else:
             for move in self.game.legal_moves:
@@ -103,14 +112,15 @@ def get_unique_filename(parent_path, prefix, extension):
 
 
 class MCTSModel:
-    def __init__(self):
+    def __init__(self, model_instance):
         self.data = []
         self.board = chess.Board()
         self.converter = ChessConverter()
+        self.model_instance = model_instance
 
     def self_play(self, show_gui: bool, parent_path: str):
         while not self.board.is_game_over():
-            node = MCTSNode(game=self.board)
+            node = MCTSNode(game=self.board, move=None, parent=None, model = self.model_instance)
             move = monte_carlo_tree_search(node, 1000)
 
             # Save state and MCTS policy
@@ -131,32 +141,24 @@ class MCTSModel:
             result = 1
         elif self.board.result() == "0-1":
             result = -1
-
-        self.data = [(state, fen_state, policy, result) for state, policy in self.data]
-        self.save_data(parent_path)
+        if parent_path:
+            self.data = [(state, fen_state, policy, result) for state, policy in self.data]
+            states, fen_state, policies, values = zip(*self.data)
+            npz_filename = get_unique_filename(parent_path, "data_", ".npz")
+            pgn_filename = get_unique_filename(parent_path, "data_", ".pgn")
+            np.savez(
+                npz_filename,
+                states=np.array(states),
+                fen_state=np.array(fen_state),
+                policies=np.array(policies),
+                values=np.array(values),
+            )
+            # Save as PGN
+            game = chess.pgn.Game().from_board(self.board)
+            with open(pgn_filename, "w") as pgn_file:
+                game.accept(chess.pgn.FileExporter(pgn_file))
         self.reset()
         return state, policy, result
-
-    def save_data(self, parent_path):
-        states, fen_state, policies, values = zip(*self.data)
-
-        # Get unique filenames
-        npz_filename = get_unique_filename(parent_path, "data_", ".npz")
-        pgn_filename = get_unique_filename(parent_path, "data_", ".pgn")
-
-        # Save as npz
-        np.savez(
-            npz_filename,
-            states=np.array(states),
-            fen_state=np.array(fen_state),
-            policies=np.array(policies),
-            values=np.array(values),
-        )
-
-        # Save as PGN
-        game = chess.pgn.Game().from_board(self.board)
-        with open(pgn_filename, "w") as pgn_file:
-            game.accept(chess.pgn.FileExporter(pgn_file))
 
     def reset(self):
         self.data = []
