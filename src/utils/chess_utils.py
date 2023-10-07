@@ -7,6 +7,8 @@ import chess.svg
 import IPython.display as display
 import numpy as np
 import torch
+from rich.console import Console
+from rich.text import Text
 
 from src.models.components.mcts import MCTSNode, monte_carlo_tree_search
 
@@ -42,23 +44,26 @@ class ChessData:
 
 class ChessBoard:
     def __init__(self):
-        pass
+        self.console = Console()
 
     def __check_game_result(self, board: chess.Board):
         """Checks the result of the game."""
+        result = Text()
         if board.is_checkmate():
             if board.turn == chess.BLACK:  # White made the last move
-                print("White wins by checkmate!")
+                result.append("White wins by checkmate!", style="bold green")
             else:
-                print("Black wins by checkmate!")
+                result.append("Black wins by checkmate!", style="bold red")
         elif board.is_stalemate():
-            print("The game is a draw due to stalemate!")
+            result.append("The game is a draw due to stalemate!", style="bold yellow")
         elif board.is_insufficient_material():
-            print("The game is a draw due to insufficient material!")
+            result.append("The game is a draw due to insufficient material!", style="bold yellow")
         elif board.can_claim_fifty_moves():
-            print("The game is a draw due to the fifty-move rule!")
+            result.append("The game is a draw due to the fifty-move rule!", style="bold yellow")
         elif board.can_claim_threefold_repetition():
-            print("The game is a draw due to threefold repetition!")
+            result.append("The game is a draw due to threefold repetition!", style="bold yellow")
+
+        self.console.print(result)
 
     def show(self, board: np.ndarray, gui: bool):
         board_svg = chess.svg.board(board=board, size=300)
