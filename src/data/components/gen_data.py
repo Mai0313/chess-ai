@@ -73,9 +73,7 @@ class ChessDataGenerator:
             "UCI_LimitStrength": "false",
             "UCI_Elo": 3500,
         }
-        self.stockfish = Stockfish(
-            path="engine/stockfish/stockfish-ubuntu-x86-64-avx2", parameters=stockfish_params
-        )
+        self.stockfish = Stockfish(path="engine/stockfish/stockfish-ubuntu-x86-64-avx2", parameters=stockfish_params)
 
     def get_stockfish_evaluation(self, fen):
         self.stockfish.set_fen_position(fen)
