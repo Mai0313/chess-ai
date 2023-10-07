@@ -8,6 +8,8 @@ import IPython.display as display
 import numpy as np
 import torch
 
+from src.models.components.mcts import MCTSNode, monte_carlo_tree_search
+
 
 class ChessData:
     def __init__(self):
@@ -96,6 +98,7 @@ class ChessGame:
         self,
         white_model: torch.nn.Module,
         gpu: bool = False,
+        mcts: bool = False,
     ):
         """Initializes the ChessGame class.
 
@@ -104,16 +107,26 @@ class ChessGame:
             black_model (torch.nn.Module, optional): Model to be used when playing as black.
                                                      If not provided, white_model will be used.
             gpu (bool, optional): Flag indicating whether to use GPU. Defaults to False.
+            mcts (bool, optional): Flag indicating whether to use Monte Carlo Tree Search.
         """
         self.board = chess.Board()
         self.white_model = white_model
         self.gpu = gpu
+        self.mcts = mcts
         if self.gpu and torch.cuda.is_available():
             self.white_model.to("cuda:0")
 
     def reset_board(self):
         """Resets the game board."""
         self.board.reset()
+
+    def model_move(self):
+        if self.mcts:
+            node = MCTSNode(self.board, None, None, self.white_model)
+            move = monte_carlo_tree_search(node, 1000)
+        else:
+            move = ChessMove().move(self.white_model, self.board, self.gpu)
+        return move
 
     def self_play(self, gui: bool):
         """The model plays against itself.
@@ -122,7 +135,7 @@ class ChessGame:
             gui (bool): Flag indicating whether to show a GUI. Defaults to False.
         """
         while not self.board.is_game_over():
-            move = ChessMove().move(self.white_model, self.board, self.gpu)
+            move = self.model_move()
             self.board.push(move)
             ChessBoard().show(self.board, gui)
 
@@ -132,14 +145,15 @@ class ChessGame:
         Args:
             black_model (torch.nn.Module): Model to be used when playing as black.
             gui (bool): Flag indicating whether to show a GUI. Defaults to False.
+            mcts (bool, optional): Flag indicating whether to use Monte Carlo Tree Search.
         """
         while not self.board.is_game_over():
             if self.board.turn == chess.WHITE:
-                move = ChessMove().move(self.white_model, self.board, self.gpu)
+                move = self.model_move()
             else:
                 if self.gpu and torch.cuda.is_available():
                     black_model.to("cuda:0")
-                move = ChessMove().move(black_model, self.board, self.gpu)
+                move = self.model_move()
             self.board.push(move)
             ChessBoard().show(self.board, gui)
 
@@ -163,9 +177,9 @@ class ChessGame:
                 except ValueError:
                     print("Invalid move. Please enter a valid move.")
             if not self.board.is_game_over():
-                model_move = ChessMove().move(self.white_model, self.board, self.gpu)
-                self.board.push(model_move)
-                print(f"Model's move: {model_move}")
+                move = self.model_move()
+                self.board.push(move)
+                print(f"Model's move: {move}")
                 ChessBoard().show(self.board, gui)
 
     def model_vs_stockfish(self, gui: bool, stockfish_path: str, cpu_nums: int = 4):
@@ -184,7 +198,31 @@ class ChessGame:
 
         while not self.board.is_game_over():
             if self.board.turn == chess.WHITE:
-                move = ChessMove().move(self.white_model, self.board, self.gpu)
+                move = self.model_move()
+            else:
+                result = engine.play(self.board, chess.engine.Limit(time=5.0))
+                move = result.move
+            self.board.push(move)
+            ChessBoard().show(self.board, gui)
+
+        engine.quit()
+
+    def model_vs_lc0(self, gui: bool, lc0_path: str, lc0_model_path: str):
+        """Play a game between the model and Stockfish.
+
+        Args:
+            gui (bool): Flag indicating whether to show a GUI.
+            lc0_path (str, optional): Path to the Lc0 executable.
+            lc0_model_path (str, optional): Path to the Lc0 model.
+        """
+        engine = chess.engine.SimpleEngine.popen_uci(lc0_path)
+
+        # Set Stockfish to use more threads for increased speed
+        engine.configure({"WeightsFile": lc0_model_path})
+
+        while not self.board.is_game_over():
+            if self.board.turn == chess.WHITE:
+                move = self.model_move()
             else:
                 result = engine.play(self.board, chess.engine.Limit(time=5.0))
                 move = result.move
@@ -203,7 +241,7 @@ class ChessGame:
         Returns:
             chess.Move: The best move for the given board state.
         """
-        best_move = ChessMove().move(self.white_model, board, self.gpu)
-        board.push(best_move)
+        move = self.model_move()
+        board.push(move)
         ChessBoard().show(board, gui)
-        return best_move
+        return move
