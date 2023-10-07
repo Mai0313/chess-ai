@@ -48,18 +48,12 @@ model:
     gomoku: False
   compile: False
   loss_fns:
+  - _target_: src.models.components.loss_fn.CrossEntropyLoss
+    tag: cross_entropy_loss
+    weight: 0.5
   - _target_: src.models.components.loss_fn.MSELoss
     tag: mse_loss
-    weight: 0.6
-  # - _target_: src.models.components.loss_fn.CrossEntropyLoss
-  #   tag: cross_entropy_loss
-  #   weight: 0.2
-  # - _target_: src.models.components.loss_fn.HuberLoss
-  #   tag: huber_loss
-  #   weight: 0.2
-  # - _target_: src.models.components.loss_fn.AlphaLoss
-  #   tag: alpha_loss
-  #   weight: 1
+    weight: 0.5
 callbacks:
   model_checkpoint:
     _target_: lightning.pytorch.callbacks.ModelCheckpoint
