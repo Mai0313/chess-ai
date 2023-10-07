@@ -120,7 +120,7 @@ class MCTSModel:
 
     def self_play(self, show_gui: bool, parent_path: str):
         while not self.board.is_game_over():
-            node = MCTSNode(game=self.board, move=None, parent=None, model = self.model_instance)
+            node = MCTSNode(game=self.board, move=None, parent=None, model=self.model_instance)
             move = monte_carlo_tree_search(node, 1000)
 
             # Save state and MCTS policy
