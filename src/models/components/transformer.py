@@ -5,14 +5,10 @@ from lightning import LightningModule
 
 
 class ChessTransformer(LightningModule):
-    def __init__(
-        self, d_model: int, nhead: int, num_layers: int, num_actions: int, action_type: str
-    ) -> None:
+    def __init__(self, d_model: int, nhead: int, num_layers: int, num_actions: int, action_type: str) -> None:
         super().__init__()
 
-        self.embedding = nn.Linear(
-            12, d_model
-        )  # Convert each square's representation into d_model dimensions
+        self.embedding = nn.Linear(12, d_model)  # Convert each square's representation into d_model dimensions
 
         # Transformer encoder layers
         self.transformer_encoder = nn.TransformerEncoder(
