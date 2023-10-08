@@ -13,25 +13,26 @@ data:
   pin_memory: False
   gen_data: False
   dataset:
-    raw_data:
-      data_path: ${paths.data_dir}/20230929_raw_data
     train:
-      data_path: ${paths.data_dir}/train_cases.npz
+      data_path: ${paths.data_dir}/20231008_transform_data/transformed_train_cases.npz
       case_nums: 500
     validation:
-      data_path: ${paths.data_dir}/val_cases.npz
+      data_path: ${paths.data_dir}/20231008_transform_data/transformed_val_cases.npz
       case_nums: 30
     test:
-      data_path: ${paths.data_dir}/test_cases.npz
+      data_path: ${paths.data_dir}/20231008_transform_data/transformed_test_cases.npz
       case_nums: 30
   force_parse_data: False
 model:
   _target_: src.models.chess_mcts_module.ChessMCTSModule
   optimizer:
-    _target_: torch.optim.Adam
+    _target_: torch.optim.AdamW
     _partial_: true
-    lr: 0.001
+    lr: 0.002
+    betas: [0.9, 0.999]
+    eps: 1e-5
     weight_decay: 0.0
+    amsgrad: true
   scheduler:
     _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
     _partial_: true
@@ -46,7 +47,7 @@ model:
     num_filters: 256
     num_fc_units: 256
     gomoku: False
-  compile: False
+  compile: True
   loss_fns:
   - _target_: src.models.components.loss_fn.CrossEntropyLoss
     tag: policy_loss
