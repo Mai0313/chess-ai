@@ -27,7 +27,7 @@ class ChessTransformer(LightningModule):
         super().__init__()
 
         self.embedding = nn.Linear(12, d_model)  # Convert each square's representation into d_model dimensions
-        self.pos_encoder = PositionalEncoding(d_model, max_len=8*8)
+        self.pos_encoder = PositionalEncoding(d_model, max_len=8 * 8)
 
         encoder_layers = nn.TransformerEncoderLayer(d_model, nhead)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layers, num_layers=num_layers)
@@ -59,4 +59,3 @@ class ChessTransformer(LightningModule):
         policy_logits = self.policy_head(flattened_encoded_board)
 
         return policy_logits, value
-
