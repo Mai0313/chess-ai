@@ -80,9 +80,10 @@ class ChessMCTSModule(LightningModule):
         for loss_fn in self.loss_fns:
             if loss_fn.tag == "value_loss":
                 losses[loss_fn.tag] = loss_fn(value, target_value)
+                losses["total_loss"] += losses[loss_fn.tag] * loss_fn.weight
             else:
                 losses[loss_fn.tag] = loss_fn(pi_logits, target_policy)
-            losses["total_loss"] += losses[loss_fn.tag] * loss_fn.weight
+            # losses["total_loss"] += losses[loss_fn.tag] * loss_fn.weight
         return losses, pi_logits, value
 
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int) -> torch.Tensor:
