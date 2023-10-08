@@ -43,7 +43,7 @@ model:
     d_model: 512
     nhead: 8
     num_layers: 6
-  compile: False
+  compile: True
   loss_fns:
   - _target_: src.models.components.loss_fn.BCEWithLogitsLoss
     tag: bse_loss

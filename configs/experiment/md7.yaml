@@ -42,7 +42,7 @@ model:
   net:
     _target_: src.models.components.dcnn.DeepChessCNN
     num_actions: 1
-  compile: true
+  compile: True
   loss_fns:
   - _target_: src.models.components.loss_fn.CrossEntropyLoss
     tag: policy_loss
