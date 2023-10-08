@@ -180,8 +180,13 @@ When running `python src/train.py` you should see something like this:
 ### Usage
 
 1. add traning data at data file
-2. choose engine or model by modification /config/train.yaml
+2. choose engine or model by modification /config/experiment/
 3. run train.py
+#You can override any parameter from command line like this
+```bash
+python src/train.py g trainer.max_epochs=x data.batch_size=x trainer=cpu 
+#gpu or cpu
+```
 
 ## ⚡  Your Superpowers
 
@@ -530,35 +535,18 @@ Suggestions for improvements are always welcome!
 
 ## How It Works
 
-All PyTorch Lightning modules are dynamically instantiated from module paths specified in config. Example model config:
+### Conver chessborad to np array
 
 ```yaml
-_target_: src.models.mnist_model.MNISTLitModule
-lr: 0.001
-net:
-  _target_: src.models.components.simple_dense_net.SimpleDenseNet
-  input_size: 784
-  lin1_size: 256
-  lin2_size: 256
-  lin3_size: 256
-  output_size: 10
+# square:An integer representing the index of a square on the chessboard, ranging from 0 to 63
+# rank and file: These represent the row and column, respectively, of the 8x8 chessboard rangin from 0 to 7
+rank, file = divmod(square, 8)
+# 1 mean this piece type is occupied
+# piece_idx maps chess piece symbols to integers
+board_array[7 - rank, file, piece_idx[piece.symbol()]] = 1.0
 ```
+### Generate Legitimate Chessboard
 
-Using this config we can instantiate the object with the following line:
-
-```python
-model = hydra.utils.instantiate(config.model)
-```
-
-This allows you to easily iterate over new models! Every time you create a new one, just specify its module path and parameters in appropriate config file. <br>
-
-Switch between models and datamodules with command line arguments:
-
-```bash
-python train.py model=mnist
-```
-
-Example pipeline managing the instantiation logic: [src/train.py](src/train.py).
 
 <br>
 
@@ -1242,7 +1230,7 @@ ______________________________________________________________________
 
 <div align="center">
 
-# Your Project Name
+# Chess-AI-Pytorch
 
 <a href="https://pytorch.org/get-started/locally/"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-ee4c2c?logo=pytorch&logoColor=white"></a>
 <a href="https://pytorchlightning.ai/"><img alt="Lightning" src="https://img.shields.io/badge/-Lightning-792ee5?logo=pytorchlightning&logoColor=white"></a>
