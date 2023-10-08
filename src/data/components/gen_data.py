@@ -75,7 +75,10 @@ class ChessDataGenerator:
         self.eval_option = eval_option
         if self.eval_option:
             from stockfish import Stockfish
-            self.stockfish = Stockfish(path="engine/stockfish/stockfish-ubuntu-x86-64-avx2", parameters=stockfish_params)
+
+            self.stockfish = Stockfish(
+                path="engine/stockfish/stockfish-ubuntu-x86-64-avx2", parameters=stockfish_params
+            )
 
     def get_stockfish_evaluation(self, fen):
         if self.eval_option:
