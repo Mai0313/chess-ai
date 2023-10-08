@@ -40,7 +40,7 @@ model:
     factor: 0.1
     patience: 10
   net:
-    _target_: src.models.components.rnn.ChessRNN
+    _target_: src.models.components.dcnn.DeepChessCNN
     num_actions: 1
   compile: true
   loss_fns:
