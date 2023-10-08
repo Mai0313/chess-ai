@@ -535,7 +535,7 @@ Suggestions for improvements are always welcome!
 
 ## How It Works
 
-### Conver chessborad to np array
+### Convert chessborad to np array
 
 ```yaml
 # square:An integer representing the index of a square on the chessboard, ranging from 0 to 63
@@ -547,6 +547,27 @@ board_array[7 - rank, file, piece_idx[piece.symbol()]] = 1.0
 ```
 ### Generate Legitimate Chessboard
 
+```bash
+#this to will randomly generate legal moves 
+legal_moves = list(board.legal_moves)
+move = np.random.choice(legal_moves)
+#then save to np array
+data_array = np.array(data)
+labels_array = np.array(labels)
+data_array = np.transpose(data_array, (0, 3, 1, 2))
+file_name = f"{folder_path}/generated_cases_{i}.npz"
+save_data(data_array, labels_array, file_name)
+```
+
+### start training
+Modify /config/train.yaml to load your model from /config/experiment
+
+run /src/train.py
+```bash
+python src/train.py g trainer.max_epochs=x data.batch_size=x trainer=cpu 
+# x is any you want 
+# gpu or cpu
+```
 
 <br>
 
