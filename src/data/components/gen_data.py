@@ -7,7 +7,6 @@ from rich.progress import Progress
 from sklearn.model_selection import train_test_split
 import rootutils
 import autorootcwd
-from stockfish import Stockfish
 
 rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
@@ -56,7 +55,7 @@ class ChessDataLoader:
 
 
 class ChessDataGenerator:
-    def __init__(self):
+    def __init__(self, eval_option: bool = False):
         stockfish_params = {
             "Debug Log File": "",
             "Contempt": 0,
@@ -73,15 +72,21 @@ class ChessDataGenerator:
             "UCI_LimitStrength": "false",
             "UCI_Elo": 3500,
         }
-        self.stockfish = Stockfish(path="engine/stockfish/stockfish-ubuntu-x86-64-avx2", parameters=stockfish_params)
+        self.eval_option = eval_option
+        if self.eval_option:
+            from stockfish import Stockfish
+            self.stockfish = Stockfish(path="engine/stockfish/stockfish-ubuntu-x86-64-avx2", parameters=stockfish_params)
 
     def get_stockfish_evaluation(self, fen):
-        self.stockfish.set_fen_position(fen)
-        eval_info = self.stockfish.get_evaluation()
-        if eval_info["type"] == "cp":
-            return eval_info["value"] / 100.0  # Convert centipawn to typical value range [-1, 1]
-        else:  # If it's a mate score
-            return 1.0 if eval_info["value"] > 0 else -1.0
+        if self.eval_option:
+            self.stockfish.set_fen_position(fen)
+            eval_info = self.stockfish.get_evaluation()
+            if eval_info["type"] == "cp":
+                return eval_info["value"] / 100.0  # Convert centipawn to typical value range [-1, 1]
+            else:  # If it's a mate score
+                return 1.0 if eval_info["value"] > 0 else -1.0
+        else:
+            return 1.0
 
     def convert_data(self, input_path, train_cases_path, val_cases_path):
         all_data = []

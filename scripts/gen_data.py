@@ -6,4 +6,4 @@ if __name__ == "__main__":
     val_cases_path = "./data/val_cases.npz"
     # ChessDataGenerator().convert_data(input_path, train_cases_path, val_cases_path)
     # ChessDataGenerator().convert_data_from_realworld(input_path, train_cases_path, val_cases_path)
-    ChessDataGenerator().generate_data(500, "./data/train_1000_gen_cases.npz")
+    ChessDataGenerator(eval_option = True).generate_data(500, "./data/train_1000_gen_cases.npz")
