@@ -13,8 +13,6 @@ data:
   pin_memory: False
   gen_data: False
   dataset:
-    raw_data:
-      data_path: ${paths.data_dir}/20230929_raw_data
     train:
       data_path: ${paths.data_dir}/train_cases.npz
       case_nums: 500
