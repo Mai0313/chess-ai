@@ -1,5 +1,5 @@
 # @package _global_
-task_name: md5_rnn_mcts
+task_name: md6_rnn_mcts
 run_name: default_run
 tags: ["dev"]
 train: True
