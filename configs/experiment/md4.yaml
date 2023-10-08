@@ -40,9 +40,8 @@ model:
     factor: 0.1
     patience: 10
   net:
-    _target_: src.models.components.transformer_v2.Transformer
+    _target_: src.models.components.transformer_v2.ChessTransformer
     num_actions: 1
-    action_type: random
     d_model: 512
     nhead: 8
     num_layers: 6
