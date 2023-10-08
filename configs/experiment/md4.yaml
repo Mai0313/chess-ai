@@ -42,7 +42,7 @@ model:
   net:
     _target_: src.models.components.transformer_v2.ChessTransformer
     num_actions: 1
-    d_model: 512
+    d_model: 128
     nhead: 8
     num_layers: 6
   compile: True
