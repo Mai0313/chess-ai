@@ -14,13 +14,13 @@ data:
   gen_data: False
   dataset:
     train:
-      data_path: ${paths.data_dir}/train_cases.npz
+      data_path: ${paths.data_dir}/20231007_original_data/train_cases.npz
       case_nums: 500
     validation:
-      data_path: ${paths.data_dir}/val_cases.npz
+      data_path: ${paths.data_dir}/20231007_original_data/val_cases.npz
       case_nums: 30
     test:
-      data_path: ${paths.data_dir}/test_cases.npz
+      data_path: ${paths.data_dir}/20231007_original_data/test_cases.npz
       case_nums: 30
   force_parse_data: False
 model:
