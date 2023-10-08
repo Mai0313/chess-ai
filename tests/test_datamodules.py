@@ -42,8 +42,12 @@ def test_chess_datamodule() -> None:
     assert dm.train_dataloader() and dm.val_dataloader() and dm.test_dataloader()
 
     batch = next(iter(dm.train_dataloader()))
-    x, y = batch
+    try:
+        x, y = batch
+    except ValueError:
+        x, y, z = batch
     assert len(x) == batch_size
     assert len(y) == batch_size
+    assert len(z) == batch_size
     assert x.dtype == torch.float32
     assert y.dtype == torch.float32
