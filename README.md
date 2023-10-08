@@ -144,7 +144,9 @@ The directory structure of new project looks like this:
 <br>
 
 ## 🚀  Quickstart
+
 ### Installation
+
 ```bash
 # clone project
 git clone https://github.com/Mai0313/Chess-AI-Pytorch.git
@@ -169,8 +171,6 @@ pip install -r requirements.txt
 Template contains example with MNIST classification.<br>
 When running `python src/train.py` you should see something like this:
 
-
-
 <div align="center">
 
 ![](https://github.com/ashleve/lightning-hydra-template/blob/resources/terminal.png)
@@ -182,9 +182,10 @@ When running `python src/train.py` you should see something like this:
 1. add traning data at data file
 2. choose engine or model by modification /config/experiment/
 3. run train.py
-#You can override any parameter from command line like this
+   #You can override any parameter from command line like this
+
 ```bash
-python src/train.py g trainer.max_epochs=x data.batch_size=x trainer=cpu 
+python src/train.py g trainer.max_epochs=x data.batch_size=x trainer=cpu
 #gpu or cpu
 ```
 
@@ -545,10 +546,11 @@ rank, file = divmod(square, 8)
 # piece_idx maps chess piece symbols to integers
 board_array[7 - rank, file, piece_idx[piece.symbol()]] = 1.0
 ```
+
 ### Generate Legitimate Chessboard
 
 ```bash
-#this to will randomly generate legal moves 
+#this to will randomly generate legal moves
 legal_moves = list(board.legal_moves)
 move = np.random.choice(legal_moves)
 #then save to np array
@@ -560,12 +562,14 @@ save_data(data_array, labels_array, file_name)
 ```
 
 ### start training
+
 Modify /config/train.yaml to load your model from /config/experiment
 
 run /src/train.py
+
 ```bash
-python src/train.py g trainer.max_epochs=x data.batch_size=x trainer=cpu 
-# x is any you want 
+python src/train.py g trainer.max_epochs=x data.batch_size=x trainer=cpu
+# x is any you want
 # gpu or cpu
 ```
 
@@ -771,6 +775,7 @@ Lightning provides convenient method for logging custom metrics from inside Ligh
 ## Tests
 
 ### self-play
+
 AI vs AI
 
 ```bash
@@ -779,13 +784,16 @@ ChessGame(white_model = model, gpu = True).self_play(gui = True)
 ```
 
 ### play with AI
+
 ```bash
 model = 'your model path'
 ChessGame(model, True).play_against_ai(gui = True)
 ```
 
 ### solve a chess puzzle
+
 Given a chessboard, find the best move for white.
+
 ```bash
 model = 'your model path'
 
@@ -1255,4 +1263,3 @@ SOFTWARE.
 <br>
 <br>
 <br>
-
