@@ -770,17 +770,28 @@ Lightning provides convenient method for logging custom metrics from inside Ligh
 
 ## Tests
 
-Template comes with generic tests implemented with `pytest`.
+### self-play
+AI vs AI
 
 ```bash
-# run all tests
-pytest
+model = 'your model path'
+ChessGame(white_model = model, gpu = True).self_play(gui = True)
+```
 
-# run tests from specific file
-pytest tests/test_train.py
+### play with AI
+```bash
+model = 'your model path'
+ChessGame(model, True).play_against_ai(gui = True)
+```
 
-# run all tests except the ones marked as slow
-pytest -k "not slow"
+### solve a chess puzzle
+Given a chessboard, find the best move for white.
+```bash
+model = 'your model path'
+
+board = chess.Board("your puzzle code")
+best_move = ChessGame(model, True).solve_puzzle(board = board, gui = True)
+print(f"模型推薦的移動是：{best_move}")
 ```
 
 Most of the implemented tests don't check for any specific output - they exist to simply verify that executing some commands doesn't end up in throwing exceptions. You can execute them once in a while to speed up the development.
