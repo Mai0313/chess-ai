@@ -1,5 +1,5 @@
 # @package _global_
-task_name: md2_transformer
+task_name: md7_deep_cnn_mcts
 run_name: default_run
 tags: ["dev"]
 train: True
@@ -7,29 +7,32 @@ test: True
 ckpt_path: null
 seed: null
 data:
-  _target_: src.data.chess_datamodule.ChessDataModule
+  _target_: src.data.chess_mcts_datamodule.ChessMCTSDataModule
   batch_size: 64
   num_workers: 0
   pin_memory: False
   gen_data: False
   dataset:
     train:
-      data_path: ${paths.data_dir}/20231007_original_data/train_cases.npz
+      data_path: ${paths.data_dir}/20231008_transform_data/transformed_train_cases.npz
       case_nums: 500
     validation:
-      data_path: ${paths.data_dir}/20231007_original_data/val_cases.npz
+      data_path: ${paths.data_dir}/20231008_transform_data/transformed_val_cases.npz
       case_nums: 30
     test:
-      data_path: ${paths.data_dir}/20231007_original_data/test_cases.npz
+      data_path: ${paths.data_dir}/20231008_transform_data/transformed_test_cases.npz
       case_nums: 30
   force_parse_data: False
 model:
-  _target_: src.models.chess_module.ChessModule
+  _target_: src.models.chess_mcts_module.ChessMCTSModule
   optimizer:
-    _target_: torch.optim.Adam
+    _target_: torch.optim.AdamW
     _partial_: true
-    lr: 0.001
+    lr: 0.002
+    betas: [0.9, 0.999]
+    eps: 1e-5
     weight_decay: 0.0
+    amsgrad: true
   scheduler:
     _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
     _partial_: true
@@ -37,17 +40,16 @@ model:
     factor: 0.1
     patience: 10
   net:
-    _target_: src.models.components.transformer.ChessTransformer
+    _target_: src.models.components.dcnn.DeepChessCNN
     num_actions: 1
-    action_type: random
-    d_model: 512
-    nhead: 8
-    num_layers: 6
   compile: True
   loss_fns:
-  - _target_: src.models.components.loss_fn.BCEWithLogitsLoss
-    tag: bse_loss
-    weight: 1
+  - _target_: src.models.components.loss_fn.CrossEntropyLoss
+    tag: policy_loss
+    weight: 0.5
+  - _target_: src.models.components.loss_fn.MSELoss
+    tag: value_loss
+    weight: 0.5
 callbacks:
   model_checkpoint:
     _target_: lightning.pytorch.callbacks.ModelCheckpoint
