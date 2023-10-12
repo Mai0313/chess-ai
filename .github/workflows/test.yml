@@ -3,10 +3,10 @@ name: Tests
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
       - release/*
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
         python-version:
           - "3.9"
           - "3.10"
-          # - "3.11"
+          - "3.11"
 
     timeout-minutes: 20
 
@@ -42,17 +42,18 @@ jobs:
           # cache: 'pip'
 
       # Disable cache since Github action cache storge is too small for Pytorch.
-      # - name: Cache pip
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: ~/.cache/pip
-      #     key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-pip-
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          sed -i 's/opencv-contrib-python/opencv-contrib-python-headless/' requirements.txt
           pip install -r requirements.txt
           pip install pytest
           pip install sh
@@ -60,6 +61,10 @@ jobs:
       - name: List dependencies
         run: |
           python -m pip list
+
+      - name: List all Folder
+        run: |
+          ls -l -a
 
       - name: Run pytest
         run: |
