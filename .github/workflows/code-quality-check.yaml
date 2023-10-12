@@ -40,7 +40,6 @@ jobs:
         with:
           path: ~/.cache/pre-commit
           key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
-          restore-keys: ${{ runner.os }}-pre-commit
 
       - name: Run pre-commits
         id: code-quality-check
