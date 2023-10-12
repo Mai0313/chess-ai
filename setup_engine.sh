@@ -34,7 +34,7 @@ get_models() {
 }
 # Share
 mkdir lc0_model
-get_models https://storage.lczero.org/files/networks-contrib/t2-768x15x24h-swa-5230000.pb.gz
-get_models https://storage.lczero.org/files/networks-contrib/t1-512x15x8h-distilled-swa-3395000.pb.gz
-get_models https://storage.lczero.org/files/networks-contrib/t1-256x10-distilled-swa-2432500.pb.gz
+get_models https://huggingface.co/Mai0313/Lc0-Chess-Model/resolve/main/t1-512x15x8h-distilled-swa-3395000.pb.gz &
+get_models https://huggingface.co/Mai0313/Lc0-Chess-Model/resolve/main/t1-256x10-distilled-swa-2432500.pb.gz &
+get_models https://huggingface.co/Mai0313/Lc0-Chess-Model/resolve/main/t2-768x15x24h-swa-5230000.pb.gz
 mv *.pb lc0_model
