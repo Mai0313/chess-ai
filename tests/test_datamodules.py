@@ -1,7 +1,5 @@
 import glob
-from pathlib import Path
 
-import pytest
 import torch
 from omegaconf import OmegaConf
 
@@ -31,10 +29,7 @@ def test_chess_datamodule() -> None:
         batch_size = cfg.data.batch_size
 
         dm = ChessDataModule(
-            dataset=dataset,
-            gen_data=gen_data,
-            num_workers=num_workers,
-            pin_memory=pin_memory,
+            dataset=dataset, gen_data=gen_data, num_workers=num_workers, pin_memory=pin_memory
         )
         dm.prepare_data()
 

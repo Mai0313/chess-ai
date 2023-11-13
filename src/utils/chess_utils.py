@@ -1,6 +1,3 @@
-import multiprocessing as mp
-from typing import Optional
-
 import chess
 import chess.engine
 import chess.svg
@@ -99,12 +96,7 @@ class ChessMove:
 
 
 class ChessGame:
-    def __init__(
-        self,
-        white_model: torch.nn.Module,
-        gpu: bool = False,
-        mcts: bool = False,
-    ):
+    def __init__(self, white_model: torch.nn.Module, gpu: bool = False, mcts: bool = False):
         """Initializes the ChessGame class.
 
         Args:

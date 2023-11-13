@@ -4,7 +4,7 @@ https://github.com/PyTorchLightning/pytorch-lightning/blob/master/tests/helpers/
 """
 
 import sys
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import pytest
 import torch
@@ -54,7 +54,7 @@ class RunIf:
         neptune: bool = False,
         comet: bool = False,
         mlflow: bool = False,
-        **kwargs: Dict[Any, Any],
+        **kwargs: dict[Any, Any],
     ) -> MarkDecorator:
         """Creates a new `@RunIf` `MarkDecorator` decorator.
 
@@ -91,7 +91,9 @@ class RunIf:
             reasons.append(f"torch<{max_torch}")
 
         if min_python:
-            py_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+            py_version = (
+                f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+            )
             conditions.append(Version(py_version) < Version(min_python))
             reasons.append(f"python>={min_python}")
 
@@ -133,7 +135,5 @@ class RunIf:
 
         reasons = [rs for cond, rs in zip(conditions, reasons) if cond]
         return pytest.mark.skipif(
-            condition=any(conditions),
-            reason=f"Requires: [{' + '.join(reasons)}]",
-            **kwargs,
+            condition=any(conditions), reason=f"Requires: [{' + '.join(reasons)}]", **kwargs
         )

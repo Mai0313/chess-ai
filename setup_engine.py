@@ -44,7 +44,9 @@ def install_requirements():
         for package in packages:
             package = package.strip()
             progress.update(task1, description=f"[cyan]Installing {package}...")
-            result = subprocess.call(["pip", "install", package], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            result = subprocess.call(
+                ["pip", "install", package], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            )
             if result == 0:
                 progress.update(task1, advance=1)
             # else:
@@ -58,9 +60,7 @@ def change_dir():
 
 
 def setup_windows():
-    win_stockfish_url = (
-        "https://github.com/official-stockfish/Stockfish/releases/download/sf_16/stockfish-windows-x86-64-avx2.zip"
-    )
+    win_stockfish_url = "https://github.com/official-stockfish/Stockfish/releases/download/sf_16/stockfish-windows-x86-64-avx2.zip"
     win_stockfish_filename = "stockfish-windows-x86-64-avx2.zip"
     download_with_progress(win_stockfish_url, win_stockfish_filename)
 
@@ -70,9 +70,7 @@ def setup_windows():
     os.rename("stockfish", "stockfish_win")
     os.remove(win_stockfish_filename)
 
-    lc0_win_url = (
-        "https://github.com/LeelaChessZero/lc0/releases/download/v0.30.0/lc0-v0.30.0-windows-gpu-nvidia-cuda.zip"
-    )
+    lc0_win_url = "https://github.com/LeelaChessZero/lc0/releases/download/v0.30.0/lc0-v0.30.0-windows-gpu-nvidia-cuda.zip"
     lc0_win_filename = "lc0-v0.30.0-windows-gpu-nvidia-cuda.zip"
     os.makedirs("lc0_win", exist_ok=True)
     download_with_progress(lc0_win_url, lc0_win_filename)
@@ -84,9 +82,7 @@ def setup_windows():
 
 
 def setup_linux():
-    linux_stockfish_url = (
-        "https://github.com/official-stockfish/Stockfish/releases/download/sf_16/stockfish-ubuntu-x86-64-avx2.tar"
-    )
+    linux_stockfish_url = "https://github.com/official-stockfish/Stockfish/releases/download/sf_16/stockfish-ubuntu-x86-64-avx2.tar"
     linux_stockfish_filename = "stockfish-ubuntu-x86-64-avx2.tar"
     download_with_progress(linux_stockfish_url, linux_stockfish_filename)
 
