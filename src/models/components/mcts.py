@@ -3,7 +3,6 @@ import random
 
 import chess
 import chess.svg
-import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -36,7 +35,9 @@ class MCTSNode:
     def rollout(self):
         if self.model:
             board_representation = self.converter.convert_array(self.game)
-            tensor_input = torch.from_numpy(board_representation).unsqueeze(0).float().permute(0, 3, 1, 2)
+            tensor_input = (
+                torch.from_numpy(board_representation).unsqueeze(0).float().permute(0, 3, 1, 2)
+            )
             if next(self.model.parameters()).is_cuda:
                 tensor_input = tensor_input.cuda()
             pi_logits, value = self.model(tensor_input)
@@ -63,7 +64,9 @@ class MCTSNode:
     def expand(self):
         if self.model:
             board_representation = self.converter.convert_array(self.game)
-            tensor_input = torch.from_numpy(board_representation).unsqueeze(0).float().permute(0, 3, 1, 2)
+            tensor_input = (
+                torch.from_numpy(board_representation).unsqueeze(0).float().permute(0, 3, 1, 2)
+            )
             if next(self.model.parameters()).is_cuda:
                 tensor_input = tensor_input.cuda()
             pi_logits, _ = self.model(tensor_input)

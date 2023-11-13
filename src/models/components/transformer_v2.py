@@ -26,7 +26,9 @@ class ChessTransformer(LightningModule):
     def __init__(self, d_model: int, nhead: int, num_layers: int, num_actions: int):
         super().__init__()
 
-        self.embedding = nn.Linear(12, d_model)  # Convert each square's representation into d_model dimensions
+        self.embedding = nn.Linear(
+            12, d_model
+        )  # Convert each square's representation into d_model dimensions
         self.pos_encoder = PositionalEncoding(d_model, max_len=8 * 8)
 
         encoder_layers = nn.TransformerEncoderLayer(d_model, nhead)

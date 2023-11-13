@@ -1,16 +1,12 @@
 import os
 from collections import OrderedDict
 
-import chess
-import chess.svg
 import hydra
 import rootutils
 import torch
 from omegaconf import OmegaConf
 
 rootutils.setup_root(os.path.abspath("."), indicator=".project-root", pythonpath=True)
-
-from src.utils.chess_utils import ChessBoard, ChessData, ChessGame, ChessMove
 
 
 def get_correct_state_dict(state_dict):

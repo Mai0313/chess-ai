@@ -1,5 +1,5 @@
 import math
-from typing import NamedTuple, Tuple
+from typing import NamedTuple
 
 import torch
 import torch.nn.functional as F
@@ -36,10 +36,7 @@ def initialize_weights(net: nn.Module) -> None:
 class ResNetBlock(nn.Module):
     """Basic redisual block."""
 
-    def __init__(
-        self,
-        num_filters: int,
-    ) -> None:
+    def __init__(self, num_filters: int) -> None:
         super().__init__()
 
         self.conv_block1 = nn.Sequential(
@@ -81,7 +78,7 @@ class AlphaZeroNet(LightningModule):
 
     def __init__(
         self,
-        input_shape: Tuple,
+        input_shape: tuple,
         num_actions: int,
         num_res_block: int = 19,
         num_filters: int = 256,
@@ -120,11 +117,7 @@ class AlphaZeroNet(LightningModule):
 
         self.policy_head = nn.Sequential(
             nn.Conv2d(
-                in_channels=num_filters,
-                out_channels=2,
-                kernel_size=1,
-                stride=1,
-                bias=False,
+                in_channels=num_filters, out_channels=2, kernel_size=1, stride=1, bias=False
             ),
             nn.BatchNorm2d(num_features=2),
             nn.ReLU(),
@@ -134,11 +127,7 @@ class AlphaZeroNet(LightningModule):
 
         self.value_head = nn.Sequential(
             nn.Conv2d(
-                in_channels=num_filters,
-                out_channels=1,
-                kernel_size=1,
-                stride=1,
-                bias=False,
+                in_channels=num_filters, out_channels=1, kernel_size=1, stride=1, bias=False
             ),
             nn.BatchNorm2d(num_features=1),
             nn.ReLU(),

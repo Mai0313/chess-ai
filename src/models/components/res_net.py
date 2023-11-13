@@ -28,9 +28,7 @@ class ChessResNet(LightningModule):
         super().__init__()
 
         self.initial_layers = nn.Sequential(
-            nn.Conv2d(12, 256, kernel_size=3, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
+            nn.Conv2d(12, 256, kernel_size=3, padding=1), nn.BatchNorm2d(256), nn.ReLU()
         )
 
         self.blocks = nn.Sequential(*[ResidualBlock(256) for _ in range(num_blocks)])
