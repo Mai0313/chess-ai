@@ -9,6 +9,7 @@ Pillow
 # Project Specific
 chess
 meson
+ninja
 stockfish
 
 # Basic Packages

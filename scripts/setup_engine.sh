@@ -1,4 +1,4 @@
-#!/bin/bash
+# !/bin/bash
 
 pip install -r requirements.txt
 
@@ -25,6 +25,7 @@ git clone https://github.com/LeelaChessZero/lc0.git lc0_src
 chmod +x ./lc0_src/build.sh
 ./lc0_src/build.sh
 mv ./lc0_src/build/release lc0
+rm -rf lc0_src
 
 get_models() {
     target=$1
