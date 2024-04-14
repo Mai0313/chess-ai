@@ -68,7 +68,7 @@ class ChessBoard:
             display.display(display.HTML(board_svg))
         else:
             display.clear_output(wait=True)
-            print(board)
+            print(board)  # noqa: T201
         self.__check_game_result(board)
 
 
@@ -171,11 +171,11 @@ class ChessGame:
                     valid_move = True
                     ChessBoard().show(self.board, gui)
                 except ValueError:
-                    print("Invalid move. Please enter a valid move.")
+                    print("Invalid move. Please enter a valid move.")  # noqa: T201
             if not self.board.is_game_over():
                 move = self.model_move()
                 self.board.push(move)
-                print(f"Model's move: {move}")
+                print(f"Model's move: {move}")  # noqa: T201
                 ChessBoard().show(self.board, gui)
 
     def model_vs_stockfish(self, gui: bool, stockfish_path: str, cpu_nums: int = 4):
