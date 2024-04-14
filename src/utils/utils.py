@@ -1,9 +1,8 @@
+from typing import Any, Callable, Optional
 import warnings
 from importlib.util import find_spec
-from typing import Any, Callable, Optional
 
 from omegaconf import DictConfig
-
 from src.utils import pylogger, rich_utils
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)

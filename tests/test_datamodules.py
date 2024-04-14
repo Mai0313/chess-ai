@@ -2,7 +2,6 @@ import glob
 
 import torch
 from omegaconf import OmegaConf
-
 from src.data.chess_datamodule import ChessDataModule
 
 cfg = OmegaConf.load("configs/experiment/md1.yaml")

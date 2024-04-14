@@ -2,9 +2,9 @@ import math
 from typing import NamedTuple
 
 import torch
-import torch.nn.functional as F
-from lightning import LightningModule
 from torch import nn
+from lightning import LightningModule
+import torch.nn.functional as F
 
 
 class NetworkOutputs(NamedTuple):

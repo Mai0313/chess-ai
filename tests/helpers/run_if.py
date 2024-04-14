@@ -6,22 +6,21 @@ https://github.com/PyTorchLightning/pytorch-lightning/blob/master/tests/helpers/
 import sys
 from typing import Any, Optional
 
-import pytest
 import torch
-from packaging.version import Version
-from pkg_resources import get_distribution
+import pytest
 from pytest import MarkDecorator
-
+from pkg_resources import get_distribution
+from packaging.version import Version
 from tests.helpers.package_available import (
-    _COMET_AVAILABLE,
-    _DEEPSPEED_AVAILABLE,
-    _FAIRSCALE_AVAILABLE,
     _IS_WINDOWS,
-    _MLFLOW_AVAILABLE,
-    _NEPTUNE_AVAILABLE,
     _SH_AVAILABLE,
     _TPU_AVAILABLE,
+    _COMET_AVAILABLE,
     _WANDB_AVAILABLE,
+    _MLFLOW_AVAILABLE,
+    _NEPTUNE_AVAILABLE,
+    _DEEPSPEED_AVAILABLE,
+    _FAIRSCALE_AVAILABLE,
 )
 
 
