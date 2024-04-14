@@ -3,10 +3,11 @@
 from pathlib import Path
 
 import pytest
+from omegaconf import DictConfig, open_dict
 import rootutils
+
 from hydra import compose, initialize
 from hydra.core.global_hydra import GlobalHydra
-from omegaconf import DictConfig, open_dict
 
 
 @pytest.fixture(scope="package")

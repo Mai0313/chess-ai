@@ -1,9 +1,9 @@
 import pytest
-from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, open_dict
-
 from src.train import train
 from tests.helpers.run_if import RunIf
+
+from hydra.core.hydra_config import HydraConfig
 
 
 def test_train_fast_dev_run(cfg_train: DictConfig) -> None:

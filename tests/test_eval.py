@@ -2,11 +2,11 @@ import os
 from pathlib import Path
 
 import pytest
-from hydra.core.hydra_config import HydraConfig
-from omegaconf import DictConfig, open_dict
-
 from src.eval import evaluate
+from omegaconf import DictConfig, open_dict
 from src.train import train
+
+from hydra.core.hydra_config import HydraConfig
 
 
 @pytest.mark.skip(reason="This test is too slow to run on CI.")

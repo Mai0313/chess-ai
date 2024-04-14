@@ -1,10 +1,11 @@
 import os
 from collections import OrderedDict
 
-import hydra
-import rootutils
 import torch
 from omegaconf import OmegaConf
+import rootutils
+
+import hydra
 
 rootutils.setup_root(os.path.abspath("."), indicator=".project-root", pythonpath=True)
 

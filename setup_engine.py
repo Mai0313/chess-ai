@@ -1,14 +1,14 @@
 import os
+import tarfile
+import zipfile
 import platform
 import subprocess
-import tarfile
 import urllib.request
-import zipfile
 
-from rich.console import Console
-from rich.panel import Panel
-from rich.progress import Progress
 from rich.text import Text
+from rich.panel import Panel
+from rich.console import Console
+from rich.progress import Progress
 
 console = Console()
 progress = Progress(console=console)
