@@ -1,47 +1,46 @@
+# Training
 --index-url https://pypi.org/simple
---extra-index-url https://download.pytorch.org/whl/cu118
-torch==2.1.0+cu118
-torchvision==0.16.0+cu118
-torchaudio==2.1.0+cu118
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch
+torchvision
+torchaudio
+Pillow
 
-# --index-url https://pypi.org/simple
-# --extra-index-url https://download.pytorch.org/whl/cu116
-# torch==1.12.1+cu116
-# torchvision==0.13.1+cu116
-# torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu116
+# Project Specific
+chess
+meson
+stockfish
 
 # Basic Packages
-lightning>=2.0.8
-mlflow==2.8.0
-pydantic<2.0,>=1.7.4
-SQLAlchemy==1.4.49
-aim<4.0.0
-pre-commit
-dvc
-dvc-gdrive
-# dvc[s3]
 rich
+shapely
+lightning
 hydra-core
 hydra-colorlog
 hydra-optuna-sweeper
 opencv-contrib-python
-matplotlib
+
+# Data
 rasterio
-Pillow
-pyrootutils
-shapely
-rootutils
+pydantic
+dvc-gdrive
+SQLAlchemy
+
+# Logger
+wandb
+mlflow
 tensorboard
 tensorboardX
-wandb
-fire
-pytest
-autorootcwd
+
+# Visualization
+matplotlib
+
+#### Development Related ####
 sh
+pytest
 ipykernel
 ipywidgets
-
-# Chess Packages
-chess
-meson
-stockfish
+pre-commit
+rootutils
+autorootcwd
+pyrootutils
