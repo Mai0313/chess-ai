@@ -71,7 +71,7 @@ repos:
       - id: nbqa-ruff
         args:
           - --config=pyproject.toml
-          - --ignore=T201,F821
+          - --ignore=T201,F811,F821
 
   # # Pytest
   # - repo: local
