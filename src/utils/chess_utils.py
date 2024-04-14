@@ -100,8 +100,7 @@ class ChessGame:
 
         Args:
             white_model (torch.nn.Module): Model to be used when playing as white.
-            black_model (torch.nn.Module, optional): Model to be used when playing as black.
-                                                     If not provided, white_model will be used.
+            black_model (torch.nn.Module, optional): Model to be used when playing as black. If not provided, white_model will be used.
             gpu (bool, optional): Flag indicating whether to use GPU. Defaults to False.
             mcts (bool, optional): Flag indicating whether to use Monte Carlo Tree Search.
         """
