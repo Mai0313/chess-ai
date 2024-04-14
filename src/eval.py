@@ -1,11 +1,12 @@
 from typing import Any
 
-import hydra
-import rootutils
 import torch
-from lightning import LightningDataModule, LightningModule, Trainer
-from lightning.pytorch.loggers import Logger
+from lightning import Trainer, LightningModule, LightningDataModule
 from omegaconf import DictConfig
+import rootutils
+from lightning.pytorch.loggers import Logger
+
+import hydra
 
 rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 # ------------------------------------------------------------------------------------ #
@@ -25,7 +26,7 @@ rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 # more info: https://github.com/ashleve/rootutils
 # ------------------------------------------------------------------------------------ #
 
-from src.utils import RankedLogger, extras, instantiate_loggers, log_hyperparameters, task_wrapper
+from src.utils import RankedLogger, extras, task_wrapper, instantiate_loggers, log_hyperparameters
 
 log = RankedLogger(__name__, rank_zero_only=True)
 torch.set_float32_matmul_precision("high")

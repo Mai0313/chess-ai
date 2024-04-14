@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from lightning import LightningModule
+import torch.nn.functional as F
 
 
 class ChessRNN(LightningModule):

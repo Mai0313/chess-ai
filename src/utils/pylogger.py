@@ -1,8 +1,8 @@
+from typing import Optional
 import logging
 from collections.abc import Mapping
-from typing import Optional
 
-from lightning_utilities.core.rank_zero import rank_prefixed_message, rank_zero_only
+from lightning_utilities.core.rank_zero import rank_zero_only, rank_prefixed_message
 
 
 class RankedLogger(logging.LoggerAdapter):

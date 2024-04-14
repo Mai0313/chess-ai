@@ -1,12 +1,11 @@
 import chess
-import chess.engine
-import chess.svg
-import IPython.display as display
 import numpy as np
 import torch
-from rich.console import Console
+import chess.svg
 from rich.text import Text
-
+import chess.engine
+from rich.console import Console
+import IPython.display as display
 from src.models.components.mcts import MCTSNode, monte_carlo_tree_search
 
 
