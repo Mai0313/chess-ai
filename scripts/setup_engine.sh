@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd ..
+
 pip install -r requirements.txt
 
 mkdir engine
