@@ -1,6 +1,11 @@
+from typing import Union
+import datetime
+
 import chess
 import numpy as np
 import torch
+from pydantic import Field, BaseModel, ConfigDict
+import chess.pgn
 import chess.svg
 from rich.text import Text
 import chess.engine
@@ -9,11 +14,11 @@ import IPython.display as display
 from src.models.components.mcts import MCTSNode, monte_carlo_tree_search
 
 
-class ChessData:
-    def __init__(self):
-        pass
+class ChessUtils(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    board: Union[chess.Board, np.ndarray] = Field(..., frozen=True)
 
-    def convert(self, board: chess.Board) -> np.ndarray:
+    def convert2numpy(self) -> np.ndarray:
         board_array = np.zeros((8, 8, 12), dtype=np.float32)
         piece_idx = {
             "p": 0,
@@ -29,59 +34,29 @@ class ChessData:
             "k": 5,
             "K": 11,
         }
-
         for square in chess.SQUARES:
-            piece = board.piece_at(square)
+            piece = self.board.piece_at(square)
             if piece:
                 rank, file = divmod(square, 8)
                 board_array[7 - rank, file, piece_idx[piece.symbol()]] = 1.0
         return board_array
 
-
-class ChessBoard:
-    def __init__(self):
-        self.console = Console()
-
-    def __check_game_result(self, board: chess.Board):
-        """Checks the result of the game."""
-        result = Text()
-        if board.is_checkmate():
-            if board.turn == chess.BLACK:  # White made the last move
-                result.append("White wins by checkmate!", style="bold green")
-            else:
-                result.append("Black wins by checkmate!", style="bold red")
-        elif board.is_stalemate():
-            result.append("The game is a draw due to stalemate!", style="bold yellow")
-        elif board.is_insufficient_material():
-            result.append("The game is a draw due to insufficient material!", style="bold yellow")
-        elif board.can_claim_fifty_moves():
-            result.append("The game is a draw due to the fifty-move rule!", style="bold yellow")
-        elif board.can_claim_threefold_repetition():
-            result.append("The game is a draw due to threefold repetition!", style="bold yellow")
-
-        self.console.print(result)
-
-    def show(self, board: np.ndarray, gui: bool):
-        board_svg = chess.svg.board(board=board, size=300)
+    def show(self, gui: bool) -> None:
+        board_svg = chess.svg.board(board=self.board, size=300)
         if gui:
             display.clear_output(wait=True)
             display.display(display.HTML(board_svg))
         else:
             display.clear_output(wait=True)
-            print(board)  # noqa: T201
-        self.__check_game_result(board)
+            print(self.board)  # noqa: T201
 
-
-class ChessMove:
-    def __init__(self):
-        pass
-
-    def move(self, model, board, gpu: bool):
+    def move(self, model, gpu: bool):
         best_move = None
         best_value = -1.0  # Initialize with a low value
+        board = self.board
         for move in board.legal_moves:
             board.push(move)
-            board_array = ChessData().convert(board)
+            board_array = ChessUtils.convert2numpy(board)
             board_array = np.transpose(board_array, (2, 0, 1))
             board_array = torch.tensor(board_array).float().unsqueeze(0)
             if gpu and torch.cuda.is_available():
@@ -92,6 +67,35 @@ class ChessMove:
                 best_value = value
                 best_move = move
         return best_move
+
+    def extract_game_info(
+        self, game: chess.pgn.Game, idx: int, current_time: str
+    ) -> chess.pgn.Game:
+        game.headers["Event"] = "Lc0 v.s. Lc0"
+        game.headers["Site"] = idx
+        game.headers["Date"] = current_time
+        game.headers["White"] = "Lc0_White"
+        game.headers["Black"] = "Lc0_Black"
+        game.headers["Result"] = self.board.result()
+        return game
+
+    def save(self, idx: int, game: chess.pgn.Game, info_list: list[dict], output_dir: str):
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+
+        game.headers["Event"] = "Lc0 v.s. Lc0"
+        game.headers["Site"] = f"{idx}"
+        game.headers["Date"] = current_time
+        game.headers["White"] = "Lc0_White"
+        game.headers["Black"] = "Lc0_Black"
+        game.headers["Result"] = self.board.result()
+
+        output_pgn_filename = f"{output_dir}/lc0_vs_lc0_{current_time}.pgn"
+        with open(output_pgn_filename, "w") as pgn_file:
+            exporter = chess.pgn.FileExporter(pgn_file)
+            game.accept(exporter)
+
+        output_npz_filename = f"{output_dir}/lc0_vs_lc0_{current_time}.npz"
+        np.savez(output_npz_filename, game_info=info_list, game_pgn=game)
 
 
 class ChessGame:
@@ -120,7 +124,7 @@ class ChessGame:
             node = MCTSNode(self.board, None, None, self.white_model)
             move = monte_carlo_tree_search(node, 1000)
         else:
-            move = ChessMove().move(self.white_model, self.board, self.gpu)
+            move = ChessUtils(board=self.board).move(self.white_model, self.gpu)
         return move
 
     def self_play(self, gui: bool):
@@ -132,7 +136,7 @@ class ChessGame:
         while not self.board.is_game_over():
             move = self.model_move()
             self.board.push(move)
-            ChessBoard().show(self.board, gui)
+            ChessUtils().show(self.board, gui)
 
     def model_vs_model(self, black_model: torch.nn.Module, gui: bool):
         """Two models play against each other.
@@ -150,7 +154,7 @@ class ChessGame:
                     black_model.to("cuda:0")
                 move = self.model_move()
             self.board.push(move)
-            ChessBoard().show(self.board, gui)
+            ChessUtils().show(self.board, gui)
 
     def play_against_ai(self, gui: bool):
         """Play a game against the AI model.
@@ -159,7 +163,7 @@ class ChessGame:
             gui (bool): Flag indicating whether to show a GUI.
         """
         while not self.board.is_game_over():
-            ChessBoard().show(self.board, gui)
+            ChessUtils().show(self.board, gui)
             valid_move = False
             while not valid_move:
                 try:
@@ -168,14 +172,14 @@ class ChessGame:
                         return
                     self.board.push_san(human_move)
                     valid_move = True
-                    ChessBoard().show(self.board, gui)
+                    ChessUtils().show(self.board, gui)
                 except ValueError:
                     print("Invalid move. Please enter a valid move.")  # noqa: T201
             if not self.board.is_game_over():
                 move = self.model_move()
                 self.board.push(move)
                 print(f"Model's move: {move}")  # noqa: T201
-                ChessBoard().show(self.board, gui)
+                ChessUtils().show(self.board, gui)
 
     def model_vs_stockfish(self, gui: bool, stockfish_path: str, cpu_nums: int = 4):
         """Play a game between the model and Stockfish.
@@ -198,7 +202,7 @@ class ChessGame:
                 result = engine.play(self.board, chess.engine.Limit(time=5.0))
                 move = result.move
             self.board.push(move)
-            ChessBoard().show(self.board, gui)
+            ChessUtils().show(self.board, gui)
 
         engine.quit()
 
@@ -222,7 +226,7 @@ class ChessGame:
                 result = engine.play(self.board, chess.engine.Limit(time=5.0))
                 move = result.move
             self.board.push(move)
-            ChessBoard().show(self.board, gui)
+            ChessUtils().show(self.board, gui)
 
         engine.quit()
 
@@ -238,5 +242,5 @@ class ChessGame:
         """
         move = self.model_move()
         board.push(move)
-        ChessBoard().show(board, gui)
+        ChessUtils().show(board, gui)
         return move

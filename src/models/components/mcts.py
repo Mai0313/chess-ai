@@ -134,7 +134,7 @@ def get_unique_filename(parent_path, prefix, extension):
 
 #             self.board.push(move)
 #             if show_gui:
-#                 ChessBoard().show(self.board, show_gui)
+#                 ChessUtils().show(self.board, show_gui)
 
 #         # Add game result to each step
 #         result = 0
