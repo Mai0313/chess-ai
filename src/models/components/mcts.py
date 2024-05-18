@@ -5,6 +5,7 @@ import chess
 import torch
 import chess.svg
 import torch.nn.functional as F
+
 from src.data.components.convert import ChessConverter
 
 

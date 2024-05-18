@@ -179,7 +179,7 @@ When running `python src/train.py` you should see something like this:
 
 ### Usage
 
-1. add traning data at data file
+1. add training data at data file
 2. choose engine or model by modification /config/experiment/
 3. run train.py
    #You can override any parameter from command line like this

@@ -1,8 +1,9 @@
 from typing import Any
 
 from omegaconf import OmegaConf
-from src.utils import pylogger
 from lightning_utilities.core.rank_zero import rank_zero_only
+
+from src.utils import pylogger
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
 
