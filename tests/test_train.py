@@ -1,8 +1,8 @@
 import pytest
 from omegaconf import DictConfig, open_dict
 from src.train import train
-from tests.helpers.run_if import RunIf
 
+from tests.helpers.run_if import RunIf
 from hydra.core.hydra_config import HydraConfig
 
 

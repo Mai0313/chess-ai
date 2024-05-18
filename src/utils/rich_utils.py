@@ -4,11 +4,11 @@ from collections.abc import Sequence
 import rich
 from omegaconf import OmegaConf, DictConfig, open_dict
 import rich.tree
-from src.utils import pylogger
 from rich.prompt import Prompt
 import rich.syntax
 from lightning_utilities.core.rank_zero import rank_zero_only
 
+from src.utils import pylogger
 from hydra.core.hydra_config import HydraConfig
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)

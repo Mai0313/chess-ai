@@ -1,9 +1,9 @@
 from lightning import Callback
 from omegaconf import DictConfig
-from src.utils import pylogger
 from lightning.pytorch.loggers import Logger
 
 import hydra
+from src.utils import pylogger
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
 

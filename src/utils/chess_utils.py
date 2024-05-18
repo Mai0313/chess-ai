@@ -11,6 +11,7 @@ from rich.text import Text
 import chess.engine
 from rich.console import Console
 import IPython.display as display
+
 from src.models.components.mcts import MCTSNode, monte_carlo_tree_search
 
 
