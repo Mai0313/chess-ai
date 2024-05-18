@@ -64,8 +64,6 @@ line-length = 99
 
 [tool.ruff.lint]
 
-preview=true
-
 task-tags = ["TODO", "FIXME", "BUG", "XXX", "REFACT", "NOTE", "MARK", "HACK"]
 
 # Allow unused variables when underscore-prefixed.
@@ -75,6 +73,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 # Ref: https://beta.ruff.rs/docs/rules/#ruff-specific-rules-ruf
 fixable = ["ALL"]
 unfixable = []
+allowed-confusables = ["。", "，", "*", "；", "：", "、", "「", "」", "『", "』", "（", "）", "〔", "〕", "【", "】", "《", "》", "〈", "〉", "〖", "〗"]
 
 select = [
     # pyflakes
@@ -154,14 +153,16 @@ ignore = [
     "D100", "D101", "D102", "D103", "D107", "D205", "D415",
     # Doc line too long
     "W505",
-    # print found
-    # "T201",
     "N804",
     "E266",
     # Unused imports
     "F401",
-    # # Print found
-    # "T201",
+    # # No need annotation for `self`
+    # "ANN101",
+    # # No need annotation for `cls`
+    # "ANN102",
+    # # No need annotation for `__init__`
+    # "ANN204",
     ]
 
 ignore-init-module-imports = true
@@ -189,18 +190,22 @@ keep-runtime-typing = true
 [tool.ruff.lint.per-file-ignores]
 # Ignore `E402` (import violations) in all `__init__.py` files, and in `path/to/file.py`.
 "__init__.py" = ["E402"]
-"*.ipynb" = ["T201", "F401", "F811"]
-"tests/*" = ["S101"]
-
-[tool.ruff.lint.flake8-type-checking]
-strict = true
+"*.ipynb" = ["T201", "F401", "F811", "ANN"]
+"tests/*" = ["S101", "ANN"]
+"setup.py" = ["ANN"]
+# This module is from Ruian, do not change anything for future update.
+"connect_pb2.pyi" = ["UP007"]
+"connect_pb2_grpc.py" = ["ANN"]
+"server/default.py" = ["E731", "ANN201", "ANN202", "T201"]
+"server/tma.py" = ["E731", "ANN201", "ANN202", "T201"]
 
 [tool.ruff.lint.isort]
 case-sensitive = true
 classes = []
 combine-as-imports = false
 constants = []
-detect-same-package = false
+default-section = "third-party"
+detect-same-package = true
 extra-standard-library = []
 force-single-line = false
 force-sort-within-sections = true
@@ -231,19 +236,26 @@ allow-magic-value-types = ["int"]
 max-args = 5
 max-bool-expr = 5
 max-branches = 12
-max-locals = 15
-max-nested-blocks = 5
-max-positional-args = 3
 max-public-methods = 20
 max-returns = 6
 max-statements = 50
 
 [tool.ruff.format]
-preview = true
 docstring-code-format = true
 docstring-code-line-length = 99
 exclude = ["generated"]
 indent-style = "space"
 line-ending = "auto"
+preview = true
 quote-style = "double"
-skip-magic-trailing-comma = false
+skip-magic-trailing-comma = true
+
+
+# ================== #
+#     CodeSpell      #
+# ================== #
+
+[tool.codespell]
+skip = "pyproject.toml,poetry.lock,notebook/.*"
+count = false
+quiet-level = 3
